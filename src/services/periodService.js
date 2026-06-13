@@ -144,6 +144,31 @@ export const setPraKalkulasiResult = async (periodId, payload = {}) => {
   return { id: String(periodId) };
 };
 
+export const unlockPraKalkulasiResult = async (periodId) => {
+  if (!periodId) throw new Error("periodId wajib diisi");
+  
+  const { data: currentPeriod } = await supabase
+    .from("sipakdesa_periods")
+    .select("pra_kalkulasi_result")
+    .eq("id", String(periodId))
+    .maybeSingle();
+
+  const existingResult = currentPeriod?.pra_kalkulasi_result || {};
+
+  const { error } = await supabase
+    .from("sipakdesa_periods")
+    .update({
+      pra_kalkulasi_result: {
+        ...existingResult,
+        locked: false,
+      },
+    })
+    .eq("id", String(periodId));
+
+  if (error) throw new Error(`Gagal membuka kunci hasil pra-kalkulasi: ${error.message}`);
+  return { id: String(periodId) };
+};
+
 export const markAllPeriodsNeedsRecalc = async () => {
   const { error } = await supabase
     .from("sipakdesa_periods")

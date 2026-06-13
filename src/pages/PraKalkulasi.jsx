@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { useUnsavedChanges } from "../context/UnsavedChangesContext";
 import { MoneyInput, IntegerInput, DecimalInput } from "../components/NumericInput";
 import { formatInteger } from "../utils/numberFormat";
-import { updatePeriodStatus } from "../services/periodService";
+import { updatePeriodStatus, unlockPraKalkulasiResult } from "../services/periodService";
 import { Eye, EyeOff } from "lucide-react";
 import { PageSkeleton } from "../components/SkeletonLoader";
 
@@ -294,7 +294,9 @@ export default function PraKalkulasi() {
     if (!selectedPeriod) return alert({ message: "Pilih periode terlebih dahulu", type: "error" });
     if (periodMeta?.locked) {
       return alert({
-        message: "❌ Periode ini dikunci oleh admin. Buka kunci di halaman Periode untuk menjalankan atau mengubah Pra-Kalkulasi.",
+        message: periodMeta.globalLocked
+          ? "❌ Periode ini dikunci secara global oleh admin. Buka kunci di halaman Periode terlebih dahulu."
+          : "❌ Alokasi Earmark telah difinalisasi. Buka kunci earmark terlebih dahulu untuk menghitung ulang.",
         type: "error",
       });
     }
@@ -333,7 +335,9 @@ export default function PraKalkulasi() {
     if (!selectedPeriod) return alert({ message: "Pilih periode terlebih dahulu", type: "error" });
     if (periodMeta?.locked) {
       return alert({
-        message: "❌ Periode ini dikunci oleh admin. Buka kunci di halaman Periode untuk menyimpan Asumsi & Estimasi Anggaran.",
+        message: periodMeta.globalLocked
+          ? "❌ Periode ini dikunci secara global oleh admin. Buka kunci di halaman Periode terlebih dahulu."
+          : "❌ Alokasi Earmark telah difinalisasi. Buka kunci earmark terlebih dahulu untuk menyimpan perubahan.",
         type: "error",
       });
     }
@@ -371,7 +375,9 @@ export default function PraKalkulasi() {
     if (!selectedPeriod) return alert({ message: "Pilih periode terlebih dahulu", type: "error" });
     if (periodMeta?.locked) {
       return alert({
-        message: "❌ Periode ini dikunci oleh admin. Buka kunci di halaman Periode untuk melakukan finalisasi.",
+        message: periodMeta.globalLocked
+          ? "❌ Periode ini dikunci secara global oleh admin. Buka kunci di halaman Periode terlebih dahulu."
+          : "❌ Alokasi Earmark telah difinalisasi.",
         type: "error",
       });
     }
@@ -423,6 +429,42 @@ export default function PraKalkulasi() {
     }
   };
 
+  const handleUnlockEarmark = async () => {
+    if (!selectedPeriod) return alert({ message: "Pilih periode terlebih dahulu", type: "error" });
+    if (periodMeta?.globalLocked) {
+      return alert({
+        message: "❌ Periode ini dikunci secara global oleh admin. Buka kunci di halaman Periode terlebih dahulu.",
+        type: "error",
+      });
+    }
+    const ok = await confirm({
+      title: "Batal Finalisasi Earmark",
+      message: "Apakah Anda yakin ingin membatalkan finalisasi alokasi earmark ini? Parameter akan dapat diubah dan dihitung ulang kembali.",
+      confirmLabel: "Buka Kunci",
+      cancelLabel: "Batal",
+    });
+    if (!ok) return;
+    setRunning(true);
+    try {
+      await unlockPraKalkulasiResult(selectedPeriod);
+      setPeriodMeta((prev) =>
+        prev
+          ? {
+              ...prev,
+              locked: false,
+            }
+          : null
+      );
+      if (refreshPeriods) await refreshPeriods();
+      alert({ message: "Kunci alokasi earmark berhasil dibuka.", type: "info" });
+    } catch (e) {
+      console.error(e);
+      alert({ message: "Gagal membuka kunci alokasi earmark: " + (e?.message ?? e), type: "error" });
+    } finally {
+      setRunning(false);
+    }
+  };
+
   if (pageLoading && !periodMeta) {
     return (
       <div className="page-shell">
@@ -442,14 +484,39 @@ export default function PraKalkulasi() {
       </div>
 
       {periodMeta?.locked && (
-        <div className="flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-950 shadow-sm mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-          <div>
-            <p className="text-sm font-semibold">Periode Terkunci</p>
-            <p className="text-xs text-red-700">Periode ini telah dikunci oleh admin. Hasil alokasi earmark bersifat final dan tidak dapat diubah kembali kecuali kunci dibuka di menu Periode.</p>
+        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border p-4 shadow-sm mb-4 ${
+          periodMeta.globalLocked 
+            ? "border-red-200 bg-red-50 text-red-950" 
+            : "border-amber-200 bg-amber-50 text-amber-950"
+        }`}>
+          <div className="flex items-start gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 shrink-0 ${periodMeta.globalLocked ? "text-red-600" : "text-amber-600"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <div>
+              {periodMeta.globalLocked ? (
+                <>
+                  <p className="text-sm font-semibold">Periode Terkunci (Global)</p>
+                  <p className="text-xs text-red-700">Periode ini telah dikunci oleh admin secara keseluruhan. Semua parameter dan perhitungan bersifat final dan tidak dapat diubah kecuali status kunci dibuka kembali di menu <span className="font-semibold">Periode</span>.</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold">Alokasi Earmark Telah Final & Terkunci</p>
+                  <p className="text-xs text-amber-700">Hasil alokasi earmark untuk periode ini telah difinalisasi dan dikirim ke MOORA. Parameter dinonaktifkan untuk menjaga konsistensi data. Anda dapat membuka kembali kunci finalisasi ini jika ingin melakukan penyesuaian.</p>
+                </>
+              )}
+            </div>
           </div>
+          {!periodMeta.globalLocked && (
+            <button
+              type="button"
+              onClick={handleUnlockEarmark}
+              disabled={running}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-900 transition hover:bg-amber-100/50 disabled:opacity-50 shrink-0 shadow-sm"
+            >
+              🔓 Buka Kunci Earmark
+            </button>
+          )}
         </div>
       )}
 

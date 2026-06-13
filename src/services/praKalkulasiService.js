@@ -70,6 +70,7 @@ export async function getPraKalkulasiContext(periodId) {
       isActive: period.is_active,
       active: period.is_active,
       locked: period.locked || !!period.pra_kalkulasi_result?.locked,
+      globalLocked: period.locked,
       needs_recalc: period.needs_recalc,
       ahp_done: period.ahp_done,
       ahpDone: period.ahp_done,
