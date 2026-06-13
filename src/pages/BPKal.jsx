@@ -41,7 +41,7 @@ function createBlankTemplate(index = 0) {
 }
 
 export default function BPKal() {
-  const { selectedPeriod, setSelectedPeriod } = usePeriod();
+  const { selectedPeriod, setSelectedPeriod, periods } = usePeriod();
   const [periodMeta, setPeriodMeta] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
   const [running, setRunning] = useState(false);
@@ -54,6 +54,9 @@ export default function BPKal() {
   });
   const { alert, confirm } = useDialog();
   const { markDirty, clearDirty } = useUnsavedChanges();
+
+  const selectedPeriodData = periods.find(p => String(p.id) === String(selectedPeriod));
+  const isLocked = !!(periodMeta?.locked || periodMeta?.praKalkulasiResult?.locked || selectedPeriodData?.locked || selectedPeriodData?.praKalkulasiResult?.locked);
 
   useEffect(() => {
     if (!selectedPeriod) {
@@ -163,6 +166,14 @@ export default function BPKal() {
 
   const handleSave = async () => {
     if (!selectedPeriod) return alert({ message: "Pilih periode terlebih dahulu.", type: "error" });
+    if (isLocked) {
+      return alert({
+        message: (periodMeta?.locked || selectedPeriodData?.locked)
+          ? "❌ Periode dikunci secara global. Buka kunci di menu Periode terlebih dahulu."
+          : "❌ Alokasi Earmark periode ini telah difinalisasi. Buka kunci earmark terlebih dahulu.",
+        type: "error",
+      });
+    }
 
     const invalidTemplate = config.templates.find((item) => item.active !== false && !isBpkalTemplateComplete(item));
     if (invalidTemplate) {
@@ -227,6 +238,31 @@ export default function BPKal() {
         </p>
       </div>
 
+      {isLocked && (
+        <div className={`flex items-center gap-3 rounded-2xl border p-4 shadow-sm ${
+          (periodMeta?.locked || selectedPeriodData?.locked)
+            ? "border-red-200 bg-red-50 text-red-950" 
+            : "border-amber-200 bg-amber-50 text-amber-950"
+        }`}>
+          <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 shrink-0 ${(periodMeta?.locked || selectedPeriodData?.locked) ? "text-red-600" : "text-amber-600"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <div>
+            {(periodMeta?.locked || selectedPeriodData?.locked) ? (
+              <>
+                <p className="text-sm font-semibold">Periode Terkunci (Global)</p>
+                <p className="text-xs text-red-700">Periode ini telah dikunci secara global oleh admin. Formasi dan tarif BPKal dinonaktifkan dari perubahan kecuali kunci dibuka di menu <span className="font-semibold">Periode</span>.</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-semibold">Alokasi Earmark Terkunci (Final)</p>
+                <p className="text-xs text-amber-700">Hasil alokasi earmark periode ini sudah difinalisasi. Master data BPKal dinonaktifkan dari perubahan agar hasil perhitungan tetap konsisten. Buka kunci di menu <span className="font-semibold">Alokasi Earmark</span> untuk melakukan perubahan.</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="panel-info p-4 flex gap-3 items-start">
         <div className="w-10 h-10 rounded-xl bg-white text-blue-600 flex items-center justify-center">
           <Info size={20} />
@@ -280,7 +316,11 @@ export default function BPKal() {
                   <p className="font-semibold text-slate-900">Breakdown Formasi</p>
                   <p className="text-sm text-slate-600">Template ini dipasangkan dengan `jumlah_bpkal` di Data Kalurahan. Isi total orang dan komposisi per jabatan.</p>
                 </div>
-                <button onClick={addTemplate} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                <button
+                  onClick={addTemplate}
+                  disabled={isLocked}
+                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
                   <Plus size={16} /> Tambah Formasi
                 </button>
               </div>
@@ -307,7 +347,8 @@ export default function BPKal() {
                           <input
                             value={item.name}
                             onChange={(e) => handleTemplateChange(index, "name", e.target.value)}
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                            disabled={isLocked}
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-50 disabled:text-slate-500"
                             placeholder="Contoh: Formasi 9 Orang"
                           />
                         </td>
@@ -315,7 +356,8 @@ export default function BPKal() {
                           <IntegerInput
                             value={item.total_bpkal}
                             onChange={(val) => handleTemplateChange(index, "total_bpkal", val)}
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                            disabled={isLocked}
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-50 disabled:text-slate-500"
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -331,14 +373,16 @@ export default function BPKal() {
                           <IntegerInput
                             value={item.bidang}
                             onChange={(val) => handleTemplateChange(index, "bidang", val)}
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                            disabled={isLocked}
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-50 disabled:text-slate-500"
                           />
                         </td>
                         <td className="px-4 py-3">
                           <IntegerInput
                             value={item.anggota}
                             onChange={(val) => handleTemplateChange(index, "anggota", val)}
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                            disabled={isLocked}
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-50 disabled:text-slate-500"
                           />
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -346,11 +390,17 @@ export default function BPKal() {
                             type="checkbox"
                             checked={item.active !== false}
                             onChange={(e) => handleTemplateChange(index, "active", e.target.checked)}
+                            disabled={isLocked}
                             className="h-4 w-4 rounded border-slate-300 text-[#1a2847]"
                           />
                         </td>
                         <td className="px-4 py-3">
-                          <button type="button" onClick={() => removeTemplate(index)} className="inline-flex items-center gap-1 rounded-lg bg-red-100 px-3 py-2 text-xs font-semibold text-red-700">
+                          <button
+                            type="button"
+                            onClick={() => removeTemplate(index)}
+                            disabled={isLocked}
+                            className="inline-flex items-center gap-1 rounded-lg bg-red-100 px-3 py-2 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
                             <Trash2 size={14} /> Hapus
                           </button>
                         </td>
@@ -387,7 +437,8 @@ export default function BPKal() {
                     <MoneyInput
                       value={config.tariffs[field]}
                       onChange={(val) => handleTariffChange(field, val)}
-                      className="h-12 w-full rounded-xl border border-slate-300 bg-white px-3 text-base outline-none focus:border-[#1a2847] focus:ring-2 focus:ring-[#1a2847]/10"
+                      disabled={isLocked}
+                      className="h-12 w-full rounded-xl border border-slate-300 bg-white px-3 text-base outline-none focus:border-[#1a2847] focus:ring-2 focus:ring-[#1a2847]/10 disabled:bg-slate-50 disabled:text-slate-500"
                       placeholder="0"
                     />
                   </label>
@@ -409,7 +460,11 @@ export default function BPKal() {
             <div className="text-sm text-slate-500">
               Periode aktif: <span className="font-medium text-slate-800">{periodMeta?.label ?? periodMeta?.year ?? selectedPeriod ?? "-"}</span>
             </div>
-            <button onClick={handleSave} disabled={running || !selectedPeriod} className="inline-flex items-center gap-2 rounded-xl bg-[#1a2847] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#14213a] disabled:cursor-not-allowed disabled:opacity-60">
+            <button
+              onClick={handleSave}
+              disabled={running || !selectedPeriod || isLocked}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#1a2847] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#14213a] disabled:cursor-not-allowed disabled:opacity-60"
+            >
               <Save size={16} /> {running ? "Menyimpan..." : "Simpan BPKal"}
             </button>
           </div>

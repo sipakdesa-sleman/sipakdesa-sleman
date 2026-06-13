@@ -29,6 +29,9 @@ function compareByCodeThenName(a, b) {
 
 export default function DataDesa() {
   const { selectedPeriod, setSelectedPeriod, periods } = usePeriod();
+  
+  const selectedPeriodData = periods.find((p) => String(p.id) === String(selectedPeriod));
+  const isLocked = !!(selectedPeriodData?.locked || selectedPeriodData?.praKalkulasiResult?.locked);
   const [desa, setDesa] = useState([]);
   const [criteriaList, setCriteriaList] = useState([]);
   const [parameters, setParameters] = useState([]);
@@ -361,6 +364,14 @@ export default function DataDesa() {
 
   const handleSubmit = async (e) => {
     e && e.preventDefault && e.preventDefault();
+    if (isLocked) {
+      return alert({
+        message: selectedPeriodData?.locked 
+          ? "❌ Periode dikunci secara global. Buka kunci di menu Periode terlebih dahulu." 
+          : "❌ Alokasi Earmark periode ini telah difinalisasi. Buka kunci earmark terlebih dahulu.",
+        type: "error",
+      });
+    }
     try {
       const payload = {
         name: formNama,
@@ -435,6 +446,14 @@ export default function DataDesa() {
 
   const handleDelete = async (item) => {
     if (!item || !item.id) return;
+    if (isLocked) {
+      return alert({
+        message: selectedPeriodData?.locked 
+          ? "❌ Periode dikunci secara global. Buka kunci di menu Periode terlebih dahulu." 
+          : "❌ Alokasi Earmark periode ini telah difinalisasi. Buka kunci earmark terlebih dahulu.",
+        type: "error",
+      });
+    }
     try {
       const ok = await confirm({ title: "Konfirmasi", message: `Hapus kalurahan ${item.nama || item.name}?` });
       if (!ok) return;
@@ -481,6 +500,31 @@ export default function DataDesa() {
         </div>
       </div>
 
+      {isLocked && (
+        <div className={`flex items-center gap-3 rounded-2xl border p-4 shadow-sm mb-4 ${
+          selectedPeriodData?.locked 
+            ? "border-red-200 bg-red-50 text-red-950" 
+            : "border-amber-200 bg-amber-50 text-amber-950"
+        }`}>
+          <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 shrink-0 ${selectedPeriodData?.locked ? "text-red-600" : "text-amber-600"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <div>
+            {selectedPeriodData?.locked ? (
+              <>
+                <p className="text-sm font-semibold">Periode Terkunci (Global)</p>
+                <p className="text-xs text-red-700">Periode ini telah dikunci secara global oleh admin. Pengeditan data kalurahan dan nilai kriteria dinonaktifkan kecuali kunci dibuka di menu <span className="font-semibold">Periode</span>.</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-semibold">Alokasi Earmark Terkunci (Final)</p>
+                <p className="text-xs text-amber-700">Hasil alokasi earmark periode ini sudah difinalisasi. Data kalurahan dan nilai kriteria dinonaktifkan dari perubahan agar hasil perhitungan tetap konsisten. Buka kunci di menu <span className="font-semibold">Alokasi Earmark</span> untuk melakukan perubahan.</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <StatCard
@@ -526,7 +570,8 @@ export default function DataDesa() {
               <span>per halaman</span>
               <button
                 onClick={() => openCreateModal()}
-                className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+                disabled={isLocked}
+                className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
               >
                 <Plus size={16} /> Tambah Kalurahan
               </button>
@@ -584,13 +629,15 @@ export default function DataDesa() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => openEditModal(filteredDesa[startIndex + idx])}
-                        className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded inline-flex items-center gap-2"
+                        disabled={isLocked}
+                        className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Pen size={14} /> Edit
                       </button>
                       <button
                         onClick={() => handleDelete(filteredDesa[startIndex + idx])}
-                        className="px-3 py-1 bg-red-100 text-red-700 rounded inline-flex items-center gap-2"
+                        disabled={isLocked}
+                        className="px-3 py-1 bg-red-100 text-red-700 rounded inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Trash2 size={14} /> Hapus
                       </button>
