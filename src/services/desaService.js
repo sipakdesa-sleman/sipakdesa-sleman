@@ -285,3 +285,38 @@ export async function getVillagesWithPeriodData(periodId) {
     };
   });
 }
+
+export async function copyDesaRawValues(fromPeriod, toPeriod) {
+  if (!fromPeriod || !toPeriod) throw new Error("Periode sumber dan target wajib diisi");
+
+  const { data: sourceValues, error: fetchError } = await supabase
+    .from("sipakdesa_desa_raw_values")
+    .select("*")
+    .eq("period_id", String(fromPeriod));
+
+  if (fetchError) {
+    throw new Error(`Gagal mengambil data dari periode ${fromPeriod}: ${fetchError.message}`);
+  }
+
+  if (!sourceValues || sourceValues.length === 0) {
+    throw new Error(`Tidak ada data kriteria kalurahan yang dapat disalin dari periode ${fromPeriod}`);
+  }
+
+  const payloads = sourceValues.map((row) => ({
+    desa_id: row.desa_id,
+    period_id: String(toPeriod),
+    values: row.values || {},
+    jumlah_bpkal: row.jumlah_bpkal,
+    updated_at: new Date().toISOString(),
+  }));
+
+  const { error: upsertError } = await supabase
+    .from("sipakdesa_desa_raw_values")
+    .upsert(payloads, { onConflict: "desa_id,period_id" });
+
+  if (upsertError) {
+    throw new Error(`Gagal menyalin data ke periode ${toPeriod}: ${upsertError.message}`);
+  }
+
+  return { success: true, count: payloads.length };
+}
