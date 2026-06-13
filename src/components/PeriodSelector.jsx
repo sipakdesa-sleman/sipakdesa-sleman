@@ -20,8 +20,8 @@ export default function PeriodSelector({
   const activeValue = value !== undefined ? value : globalPeriod;
   const activeOnChange = onChange || setGlobalPeriod;
 
-  // Filter agar periode terkunci tidak muncul di dropdown mana pun
-  let list = globalPeriods.filter(p => !p.locked);
+  // Show all periods in dropdown so they can be viewed
+  let list = globalPeriods;
   if (filter && typeof filter === 'function') {
     list = list.filter(filter);
   }
@@ -38,7 +38,7 @@ export default function PeriodSelector({
         <option value="">-- Pilih periode --</option>
         {list.map(p => {
           const isAct = p.isActive === true || p.active === true;
-          const label = `${p.year ?? p.id}${isAct ? ' (Aktif)' : ''}${p.needs_recalc ? ' (butuh kalkulasi)' : ''}`;
+          const label = `${p.year ?? p.id}${isAct ? ' (Aktif)' : ''}${p.locked ? ' (Terkunci 🔒)' : ''}${p.needs_recalc ? ' (butuh kalkulasi)' : ''}`;
           return (
             <option key={p.id} value={p.id}>{label}</option>
           );

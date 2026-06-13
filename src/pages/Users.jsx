@@ -408,11 +408,16 @@ Catatan: Akun login di Supabase Auth akan tetap ada karena batasan client-side. 
               </thead>
               <tbody>
                 {listLoading ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
-                      Memuat data pengguna...
-                    </td>
-                  </tr>
+                  Array.from({ length: 5 }).map((_, r) => (
+                    <tr key={r} className="animate-pulse border-t border-gray-100">
+                      <td className="px-6 py-4"><div className="h-4 bg-slate-100 rounded-md w-6"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-slate-100 rounded-md w-32"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-slate-100 rounded-md w-48"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-slate-100 rounded-md w-24"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-slate-100 rounded-md w-16"></div></td>
+                      <td className="px-6 py-4"><div className="h-8 bg-slate-100 rounded-lg w-36"></div></td>
+                    </tr>
+                  ))
                 ) : paginatedUsers.map((user, idx) => (
                   <tr key={user.id} className="table-row">
                     <td className="px-6 py-4">{startIndex + idx + 1}</td>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { MapPin, ListChecks, Database, CalendarDays } from "lucide-react";
 import StatCard from "../components/StatCard";
 import UnifiedRankingWidget from "../components/UnifiedRankingWidget";
+import { DashboardSkeleton } from "../components/SkeletonLoader";
 import {
   PaguDistributionChart,
   AllocationTrendChart,
@@ -41,8 +42,8 @@ export default function Dashboard() {
 
   if (!stats) {
     return (
-      <div className="flex h-[200px] items-center justify-center text-slate-500 text-sm font-medium">
-        Memuat data dashboard...
+      <div className="page-shell">
+        <DashboardSkeleton />
       </div>
     );
   }

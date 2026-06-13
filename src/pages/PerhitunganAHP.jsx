@@ -16,6 +16,7 @@ import { useUnsavedChanges } from "../context/UnsavedChangesContext";
 import PeriodSelector from "../components/PeriodSelector";
 import { clearDraft, readDraft, writeDraft } from "../utils/draftStorage";
 import { usePeriod } from "../context/PeriodContext";
+import { PageSkeleton } from "../components/SkeletonLoader";
 
 const DRAFT_KEY = "sipakdesa:draft:ahp";
 
@@ -180,7 +181,13 @@ export default function PerhitunganAHP() {
     [result]
   );
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="page-shell">
+        <PageSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="page-shell">

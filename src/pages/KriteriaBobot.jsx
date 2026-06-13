@@ -5,6 +5,7 @@ import { getCriteriaWithWeight, createCriteria, updateCriteria, deleteCriteria, 
 import { getAllParameters, getParameterByCode, upsertParameter } from "../services/parametersService";
 import { getLatestAhpMeta, getAllAhpRuns } from "../services/ahpService";
 import { getAllPeriods } from "../services/periodService";
+import { PageSkeleton } from "../components/SkeletonLoader";
 
 const emptyCriteriaForm = { code: "", name: "", type: "", nature: "kuantitatif", active: true };
 
@@ -253,7 +254,13 @@ export default function KriteriaBobot() {
     return meta.CR.toFixed(3);
   }, [meta]);
 
-  if (loading) return <div className="p-6 text-sm text-gray-600">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="page-shell">
+        <PageSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="page-shell">

@@ -11,7 +11,7 @@ export function MoneyInput({ value, onChange, className, placeholder, disabled, 
     const text = e.target.value;
     const formatted = formatMoney(text);
     setLocalText(formatted);
-    
+
     const raw = parseMoney(text);
     onChange(raw);
   };

@@ -164,10 +164,25 @@ export default function PeringkatHasil() {
     if (!selectedPeriod || !selectedRun) return;
 
     const loadResults = async () => {
-      // Get results from selected run
+      // 1. Fetch criteria first to get names and types
+      let nameMap = {};
+      let typeMap = {};
+      try {
+        const list = await getCriteria();
+        (list || []).forEach((c) => {
+          const code = String(c.code).toUpperCase();
+          nameMap[code] = c.name || code;
+          typeMap[code] = c.type ? String(c.type).toLowerCase() : null;
+        });
+        setCriteriaMap(nameMap);
+      } catch (err) {
+        console.error("Failed to load criteria:", err);
+      }
+
+      // 2. Get results from selected run
       const mooraResults = await getResultsByRun(selectedRun);
 
-      // Load all village master data to get kecamatan and code
+      // 3. Load all village master data to get kecamatan and code
       let villageMap = {};
       try {
         const villages = await getAllDesa();
@@ -178,7 +193,7 @@ export default function PeringkatHasil() {
         console.error("Failed to load village master data:", err);
       }
 
-      // Load pre-calculation run if available
+      // 4. Load pre-calculation run if available
       const periodRecord = periods.find(p => p.id === selectedPeriod);
       const praRunId = periodRecord?.praKalkulasiResult?.runId;
       let praVillageMap = {};
@@ -195,7 +210,7 @@ export default function PeringkatHasil() {
         }
       }
 
-      // Merge data
+      // 5. Merge data and calculate benefit / cost values on-the-fly for matrix detail view
       const mergedResults = mooraResults.map(r => {
         const villageId = r.alternativeId || r.id;
         const vMaster = villageMap[villageId] || {};
@@ -215,6 +230,21 @@ export default function PeringkatHasil() {
         const addKeb = Number(praData.addKeb || 0);
         const jumlah = addSil + addKes + addKer + addKeb + kewenangan;
 
+        // Calculate benefit and cost sum for Yi calculation detail
+        let benefit = 0;
+        let cost = 0;
+        if (r.weighted) {
+          Object.entries(r.weighted).forEach(([cCode, val]) => {
+            const criteriaCode = String(cCode).toUpperCase();
+            const type = typeMap[criteriaCode];
+            if (type === "benefit") {
+              benefit += Number(val || 0);
+            } else if (type === "cost") {
+              cost += Number(val || 0);
+            }
+          });
+        }
+
         return {
           ...r,
           code,
@@ -226,13 +256,19 @@ export default function PeringkatHasil() {
           addBPKal,
           kewenangan,
           jumlah,
+          benefit,
+          cost,
         };
       });
 
       setResults(mergedResults);
 
-      if (mooraResults.length && mooraResults[0].ahpResultsId) {
-        const detail = await getAhpById(mooraResults[0].ahpResultsId);
+      // Find ahpResultsId from runs list
+      const runMeta = runs.find(r => String(r.id || r.runId) === String(selectedRun));
+      const ahpResultsId = runMeta?.ahpResultsId;
+
+      if (ahpResultsId) {
+        const detail = await getAhpById(ahpResultsId);
         setAhpMeta({ CR: detail?.CR ?? null, period: detail?.period ?? null });
         
         // Sort weights by criteria code (C1, C2, C3, ...)
@@ -255,7 +291,7 @@ export default function PeringkatHasil() {
     };
 
     loadResults();
-  }, [selectedPeriod, selectedRun, periods]);
+  }, [selectedPeriod, selectedRun, periods, runs]);
 
 
 
@@ -357,10 +393,14 @@ export default function PeringkatHasil() {
 
   const fmt = (v, d = 4) => {
     if (v === null || v === undefined || Number.isNaN(v)) return "-";
+    const num = Number(v);
+    if (Number.isInteger(num)) {
+      return new Intl.NumberFormat("id-ID").format(num);
+    }
     return new Intl.NumberFormat("id-ID", {
-      minimumFractionDigits: d,
+      minimumFractionDigits: 0,
       maximumFractionDigits: d
-    }).format(Number(v));
+    }).format(num);
   };
 
   const fmtRp = (value) => {

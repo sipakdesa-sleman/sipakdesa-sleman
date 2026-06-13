@@ -10,7 +10,8 @@ import PeriodSelector from "../components/PeriodSelector";
 import { useDialog } from "../context/DialogProvider";
 import { usePeriod } from "../context/PeriodContext";
 import { IntegerInput, DecimalInput } from "../components/NumericInput";
-import { formatInteger, formatDecimalDisplay } from "../utils/numberFormat";
+import { formatDecimalDisplay, formatInteger } from "../utils/numberFormat";
+import { PageSkeleton } from "../components/SkeletonLoader";
 
 function compareByCodeThenName(a, b) {
   const aCode = String(a.code ?? "").trim();
@@ -41,6 +42,7 @@ export default function DataDesa() {
   const [rawMap, setRawMap] = useState(new Map()); // desaId -> values
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [loading, setLoading] = useState(true);
 
   const defaultPeriodId = useMemo(() => {
     if (!periods.length) return "";
@@ -139,7 +141,7 @@ export default function DataDesa() {
     const timer = setTimeout(() => {
       fetchCriteria().then(() => {
         fetchParameters();
-        fetchDesa();
+        fetchDesa().finally(() => setLoading(false));
       });
     }, 0);
 
@@ -443,6 +445,14 @@ export default function DataDesa() {
       alert({ message: "Gagal menghapus. Cek console untuk detail.", type: "error" });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="page-shell">
+        <PageSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="page-shell">

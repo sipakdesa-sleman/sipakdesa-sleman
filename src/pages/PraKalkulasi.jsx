@@ -9,6 +9,7 @@ import { MoneyInput, IntegerInput, DecimalInput } from "../components/NumericInp
 import { formatInteger } from "../utils/numberFormat";
 import { updatePeriodStatus } from "../services/periodService";
 import { Eye, EyeOff } from "lucide-react";
+import { PageSkeleton } from "../components/SkeletonLoader";
 
 import { clearDraft, readDraft, writeDraft } from "../utils/draftStorage";
 
@@ -104,7 +105,7 @@ function DetailModal({ village, onClose }) {
 import { usePeriod } from "../context/PeriodContext";
 
 export default function PraKalkulasi() {
-  const { selectedPeriod, setSelectedPeriod, periods } = usePeriod();
+  const { selectedPeriod, setSelectedPeriod, periods, refreshPeriods } = usePeriod();
   const [periodMeta, setPeriodMeta] = useState(null);
   const [systemParams, setSystemParams] = useState({
     umk_aktif: "",
@@ -133,8 +134,9 @@ export default function PraKalkulasi() {
   const { currentUser } = useAuth();
   const { markDirty, clearDirty } = useUnsavedChanges();
 
-
-
+  useEffect(() => {
+    if (refreshPeriods) refreshPeriods();
+  }, [refreshPeriods]);
   useEffect(() => {
     const loadDraftState = () => {
       try {
@@ -355,6 +357,7 @@ export default function PraKalkulasi() {
       );
       setSystemParamsReady(true);
       clearDirty();
+      if (refreshPeriods) await refreshPeriods();
       alert({ message: "Asumsi & Estimasi Anggaran berhasil disimpan.", type: "info" });
     } catch (e) {
       console.error(e);
@@ -374,9 +377,9 @@ export default function PraKalkulasi() {
     }
     if (!result) return alert({ message: "Jalankan pra-kalkulasi dulu sebelum finalisasi.", type: "error" });
     const ok = await confirm({
-      title: "Kunci & Kirim Pagu ke MOORA",
-      message: `Simpan sisa alokasi sebesar Rp ${formatRp(result.addKew)} dan kunci periode?`,
-      confirmLabel: "Kunci & Simpan",
+      title: "Finalisasi & Kirim Pagu ke MOORA",
+      message: `Simpan sisa alokasi sebesar Rp ${formatRp(result.addKew)} dan finalisasi alokasi earmark ini untuk dikirim ke MOORA?`,
+      confirmLabel: "Finalisasi & Simpan",
       cancelLabel: "Batal",
     });
     if (!ok) return;
@@ -384,7 +387,12 @@ export default function PraKalkulasi() {
     try {
       const runPayload = {
         perVillage: result.perVillage,
-        totals: result.totals,
+        totals: {
+          ...result.totals,
+          paguTotalKab: paguKab,
+          paguKab: paguKab,
+          isKebijakan: isKebijakan,
+        },
         addKew: result.addKew,
         label: `pra_kalkulasi_${selectedPeriod}_${Date.now()}`,
       };
@@ -406,6 +414,7 @@ export default function PraKalkulasi() {
       );
       clearDirty();
       clearDraft(DRAFT_KEY);
+      if (refreshPeriods) await refreshPeriods();
     } catch (e) {
       console.error(e);
       alert({ message: "Gagal menyimpan pra-kalkulasi: " + (e?.message ?? e), type: "error" });
@@ -415,7 +424,11 @@ export default function PraKalkulasi() {
   };
 
   if (pageLoading && !periodMeta) {
-    return <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-500">Memuat alokasi earmark...</div>;
+    return (
+      <div className="page-shell">
+        <PageSkeleton />
+      </div>
+    );
   }
 
   return (
@@ -675,7 +688,7 @@ export default function PraKalkulasi() {
               onClick={handleFinalize}
               className="rounded-xl border border-[#1a2847] bg-[#1a2847] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#14213a]"
             >
-              Kunci & Kirim ke MOORA
+              Finalisasi & Kirim ke MOORA
             </button>
           )}
         </div>

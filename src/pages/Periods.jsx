@@ -10,6 +10,7 @@ import {
 } from "../services/periodService";
 import { useDialog } from "../context/DialogProvider";
 import { usePeriod } from "../context/PeriodContext";
+import { PageSkeleton } from "../components/SkeletonLoader";
 import {
   Activity,
   AlertTriangle,
@@ -32,6 +33,7 @@ import StatCard from "../components/StatCard";
 export default function Periods() {
   const { refreshPeriods } = usePeriod();
   const [periods, setPeriods] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [newPeriod, setNewPeriod] = useState("");
   const [copyFrom, setCopyFrom] = useState("");
   const [copyTo, setCopyTo] = useState("");
@@ -56,6 +58,7 @@ export default function Periods() {
   useEffect(() => {
     (async () => {
       await load();
+      setLoading(false);
     })();
   }, []);
 
@@ -127,6 +130,14 @@ export default function Periods() {
       alert({ message: `Gagal menyalin bobot: ${e?.message ?? e}`, type: "error" });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="page-shell">
+        <PageSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="page-shell">

@@ -4,6 +4,7 @@ import { getPeriod } from "../services/periodService";
 import PeriodSelector from "../components/PeriodSelector";
 import StatCard from "../components/StatCard";
 import { useDialog } from "../context/DialogProvider";
+import { PageSkeleton } from "../components/SkeletonLoader";
 import { useUnsavedChanges } from "../context/UnsavedChangesContext";
 import { getBpkalConfig, saveBpkalConfig } from "../services/bpkalService";
 import { createEmptyBpkalTemplate, isBpkalTemplateComplete, isBpkalTariffComplete } from "../utils/bpkal";
@@ -210,7 +211,11 @@ export default function BPKal() {
   }, [config.templates]);
 
   if (pageLoading && !periodMeta) {
-    return <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-500">Memuat konfigurasi BPKal...</div>;
+    return (
+      <div className="page-shell">
+        <PageSkeleton />
+      </div>
+    );
   }
 
   return (

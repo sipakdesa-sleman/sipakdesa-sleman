@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 
 import { clearDraft, readDraft, writeDraft } from "../utils/draftStorage";
 import { usePeriod } from "../context/PeriodContext";
+import { PageSkeleton } from "../components/SkeletonLoader";
 import { IntegerInput, DecimalInput } from "../components/NumericInput";
 
 const DRAFT_KEY = "sipakdesa:draft:moora";
@@ -72,43 +73,54 @@ export default function PerhitunganMOORA() {
   const { alert } = useDialog();
   const { markDirty, clearDirty } = useUnsavedChanges();
   const [draftReady, setDraftReady] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
-    const [criteriaData, desaData, paramData, parametersData] = await Promise.all([
-      getAllCriteria(),
-      getAllDesa(),
-      getCriteriaTypes().catch(() => ({})),
-      getAllParameters().catch(() => []),
-    ]);
+    try {
+      const [criteriaData, desaData, paramData, parametersData] = await Promise.all([
+        getAllCriteria(),
+        getAllDesa(),
+        getCriteriaTypes().catch(() => ({})),
+        getAllParameters().catch(() => []),
+      ]);
 
-    setCriteria(criteriaData);
-    setCriteriaTypes(paramData ?? {});
-    setParameters(parametersData);
-    const sortedDesa = [...desaData].sort(compareByCodeThenName);
+      setCriteria(criteriaData);
+      setCriteriaTypes(paramData ?? {});
+      setParameters(parametersData);
+      const sortedDesa = [...desaData].sort(compareByCodeThenName);
 
-    setDesaList(sortedDesa);
+      setDesaList(sortedDesa);
 
-    const initialIds = sortedDesa.map(d => d.id);
-    setSelectedDesaIds(initialIds);
-    setAlternatives(
-      sortedDesa.map(d => ({
-        id: d.id,
-        code: d.code ?? null,
-        name: d.nama ?? d.name ?? "Kalurahan",
-        kecamatan: d.kecamatan ?? ""
-      }))
-    );
+      const initialIds = sortedDesa.map(d => d.id);
+      setSelectedDesaIds(initialIds);
+      setAlternatives(
+        sortedDesa.map(d => ({
+          id: d.id,
+          code: d.code ?? null,
+          name: d.nama ?? d.name ?? "Kalurahan",
+          kecamatan: d.kecamatan ?? ""
+        }))
+      );
 
-    const draft = readDraft(DRAFT_KEY);
-    if (Array.isArray(draft?.selectedDesaIds)) setSelectedDesaIds(draft.selectedDesaIds);
-    if (Array.isArray(draft?.alternatives)) setAlternatives(draft.alternatives);
-    if (draft?.showDropdown !== undefined) setShowDropdown(!!draft.showDropdown);
-    if (draft?.searchDesa !== undefined) setSearchDesa(String(draft.searchDesa ?? ""));
-    if (draft?.showDetail !== undefined) setShowDetail(!!draft.showDetail);
+      const draft = readDraft(DRAFT_KEY);
+      if (Array.isArray(draft?.selectedDesaIds)) setSelectedDesaIds(draft.selectedDesaIds);
+      if (Array.isArray(draft?.alternatives)) setAlternatives(draft.alternatives);
+      if (draft?.showDropdown !== undefined) setShowDropdown(!!draft.showDropdown);
+      if (draft?.searchDesa !== undefined) setSearchDesa(String(draft.searchDesa ?? ""));
+      if (draft?.showDetail !== undefined) setShowDetail(!!draft.showDetail);
 
-    setDraftReady(true);
-    clearDirty();
+      setDraftReady(true);
+      clearDirty();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, [clearDirty]);
+
+  useEffect(() => {
+    if (refreshPeriods) refreshPeriods();
+  }, [refreshPeriods]);
 
   useEffect(() => {
     loadData();
@@ -532,6 +544,14 @@ export default function PerhitunganMOORA() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="page-shell">
+        <PageSkeleton />
+      </div>
+    );
+  }
+
   return (
     <div className="page-shell">
       <div className="page-header">
@@ -554,21 +574,26 @@ export default function PerhitunganMOORA() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="text-sm text-gray-600">
-          Pilih periode yang akan digunakan untuk perhitungan MOORA. Pemilihan periode ini juga akan menarik data kriteria kalurahan, sisa alokasi dana desa (Pra-Kalkulasi), dan bobot kriteria AHP dari periode terpilih.
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-gray-800">Periode</span>
-          <PeriodSelector
-            value={selectedPeriod}
-            onChange={(v) => setSelectedPeriod(v)}
-            filter={(p) => p.ahpDone === true}
-            runs={ahpRuns}
-            selectedRun={selectedAhpRun}
-            onRunChange={setSelectedAhpRun}
-            showRunSelector={ahpRuns.length > 1}
-          />
+      <div className="panel bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1 max-w-3xl">
+            <h3 className="text-sm font-semibold text-slate-800">Pilih Periode Perhitungan</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Pilih periode yang akan digunakan untuk perhitungan MOORA. Pemilihan periode ini juga akan menarik data kriteria kalurahan, sisa alokasi dana desa (Pra-Kalkulasi), dan bobot kriteria AHP dari periode terpilih.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <span className="text-sm font-semibold text-slate-700">Periode:</span>
+            <PeriodSelector
+              value={selectedPeriod}
+              onChange={(v) => setSelectedPeriod(v)}
+              filter={(p) => p.ahpDone === true}
+              runs={ahpRuns}
+              selectedRun={selectedAhpRun}
+              onRunChange={setSelectedAhpRun}
+              showRunSelector={ahpRuns.length > 1}
+            />
+          </div>
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import { supabase } from "../supabase/supabaseConfig";
 export async function getCriteria() {
   const { data, error } = await supabase
     .from("sipakdesa_criteria")
-    .select("code, name")
+    .select("code, name, type")
     .order("order_num", { ascending: true });
 
   if (error) {
@@ -15,6 +15,7 @@ export async function getCriteria() {
     id: d.code,
     code: d.code,
     name: d.name ?? "",
+    type: d.type ?? null,
   }));
 }
 

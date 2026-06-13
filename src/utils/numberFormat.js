@@ -160,5 +160,5 @@ export function formatDecimalDisplay(val) {
   if (val === null || val === undefined || val === "") return "";
   const num = parseFloat(val);
   if (isNaN(num)) return "";
-  return new Intl.NumberFormat("id-ID").format(num);
+  return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 20 }).format(num);
 }

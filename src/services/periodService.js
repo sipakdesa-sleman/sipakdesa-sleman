@@ -119,11 +119,24 @@ export const updatePeriodStatus = async (id, data) => {
 
 export const setPraKalkulasiResult = async (periodId, payload = {}) => {
   if (!periodId) throw new Error("periodId wajib diisi");
+  
+  const { data: currentPeriod } = await supabase
+    .from("sipakdesa_periods")
+    .select("pra_kalkulasi_result, locked")
+    .eq("id", String(periodId))
+    .maybeSingle();
+
+  const existingResult = currentPeriod?.pra_kalkulasi_result || {};
+
   const { error } = await supabase
     .from("sipakdesa_periods")
     .update({
       pra_kalkulasi_done: true,
-      pra_kalkulasi_result: payload,
+      locked: currentPeriod?.locked || false,
+      pra_kalkulasi_result: {
+        ...existingResult,
+        ...payload,
+      },
     })
     .eq("id", String(periodId));
 

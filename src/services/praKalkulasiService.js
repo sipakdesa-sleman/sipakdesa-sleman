@@ -68,14 +68,21 @@ export async function getPraKalkulasiContext(periodId) {
       id: period.id,
       year: period.year,
       isActive: period.is_active,
-      locked: period.locked,
+      active: period.is_active,
+      locked: period.locked || !!period.pra_kalkulasi_result?.locked,
       needs_recalc: period.needs_recalc,
       ahp_done: period.ahp_done,
+      ahpDone: period.ahp_done,
       pra_kalkulasi_done: period.pra_kalkulasi_done,
+      praKalkulasiDone: period.pra_kalkulasi_done,
       moora_done: period.moora_done,
+      mooraDone: period.moora_done,
       pra_kalkulasi_result: period.pra_kalkulasi_result || {},
+      praKalkulasiResult: period.pra_kalkulasi_result || {},
       pagu_total_kab: paguTotalKab,
+      paguKab: paguTotalKab,
       is_kebijakan_active: isKebijakanActive,
+      isKebijakanActive: isKebijakanActive,
     },
     yearKey,
     systemParameters: normalizeSystemParameters(systemParameters ?? {}),
@@ -175,19 +182,29 @@ export async function savePraKalkulasiRun(periodId, runPayload = {}, currentUser
   }
 
   // 2. Insert items in batch
-  const itemsToInsert = runPayload.perVillage.map((row) => ({
-    run_id: runId,
-    desa_id: row.id,
-    desa_name: row.nama ?? row.name ?? "",
-    kecamatan: row.kecamatan ?? "",
-    siltap_count: row.siltapCount ?? row.siltap_count ?? {},
-    bpkal_count: row.bpkalCount ?? row.bpkal_count ?? null,
-    add_sil: row.addSil ?? row.add_sil ?? null,
-    add_kes: row.addKes ?? row.add_kes ?? null,
-    add_ker: row.addKer ?? row.add_ker ?? null,
-    add_keb: row.addKeb ?? row.add_keb ?? null,
-    add_bpkal: row.addBPKal ?? row.add_bpkal ?? null,
-  }));
+  const itemsToInsert = runPayload.perVillage.map((row) => {
+    const siltap_count = row.siltapCount ?? row.siltap_count ?? {
+      lurah: row.lurahCount ?? 0,
+      carik: row.carikCount ?? 0,
+      kasi: row.kasiCount ?? 0,
+      dukuh: row.jumlah_dukuh ?? 0,
+    };
+    const bpkal_count = row.bpkalCount ?? row.bpkal_count ?? row.jumlah_bpkal ?? null;
+
+    return {
+      run_id: runId,
+      desa_id: row.id,
+      desa_name: row.nama ?? row.name ?? "",
+      kecamatan: row.kecamatan ?? "",
+      siltap_count,
+      bpkal_count,
+      add_sil: row.addSil ?? row.add_sil ?? null,
+      add_kes: row.addKes ?? row.add_kes ?? null,
+      add_ker: row.addKer ?? row.add_ker ?? null,
+      add_keb: row.addKeb ?? row.add_keb ?? null,
+      add_bpkal: row.addBPKal ?? row.add_bpkal ?? null,
+    };
+  });
 
   const { error: itemsError } = await supabase
     .from("sipakdesa_pra_kalkulasi_run_items")
@@ -227,18 +244,31 @@ export async function getPraKalkulasiRun(periodId, runId) {
 
   if (itemsError) return null;
 
-  const perVillage = items.map((row) => ({
-    id: row.desa_id,
-    nama: row.desa_name,
-    kecamatan: row.kecamatan,
-    siltapCount: row.siltap_count,
-    bpkalCount: row.bpkal_count,
-    addSil: row.add_sil,
-    addKes: row.add_kes,
-    addKer: row.add_ker,
-    addKeb: row.add_keb,
-    addBPKal: row.add_bpkal,
-  }));
+  const perVillage = items.map((row) => {
+    const addSil = Number(row.add_sil || 0);
+    const addKes = Number(row.add_kes || 0);
+    const addKer = Number(row.add_ker || 0);
+    const addBPKal = Number(row.add_bpkal || 0);
+    const addKeb = Number(row.add_keb || 0);
+    const totalPotonganWajib = addSil + addKes + addKer + addBPKal + addKeb;
+
+    return {
+      id: row.desa_id,
+      nama: row.desa_name,
+      kecamatan: row.kecamatan,
+      siltapCount: row.siltap_count,
+      bpkalCount: row.bpkal_count,
+      jumlah_dukuh: Number(row.siltap_count?.dukuh ?? 0),
+      jumlah_bpkal: Number(row.bpkal_count ?? 0),
+      addSil,
+      addKes,
+      addKer,
+      addKeb,
+      addBPKal,
+      totalPotonganWajib,
+      addKewenanganKegiatan: 0,
+    };
+  });
 
   return {
     perVillage,

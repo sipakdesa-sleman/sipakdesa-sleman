@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getResultDetail } from "../services/resultService";
 import DetailMatrix from "../components/DetailMatrix";
+import { PageSkeleton } from "../components/SkeletonLoader";
 
 export default function DetailPeringkat() {
   const { id } = useParams();
@@ -11,7 +12,13 @@ export default function DetailPeringkat() {
     getResultDetail(id).then(setData);
   }, [id]);
 
-  if (!data) return <p>Loading...</p>;
+  if (!data) {
+    return (
+      <div className="page-shell">
+        <PageSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="page-shell">
