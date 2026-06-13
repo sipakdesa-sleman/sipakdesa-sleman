@@ -37,7 +37,7 @@ export function AuthProvider({ children }) {
         console.error("Gagal memeriksa profil saat login:", profileError);
       }
       
-      if (profile && profile.status === "suspended") {
+      if (profile && profile.active === false) {
         await supabase.auth.signOut();
         throw new Error("suspended");
       }
@@ -96,10 +96,10 @@ export function AuthProvider({ children }) {
 
             const profileData = {
               id: user.id,
-              name: "Pengguna Baru",
+              fullname: "Pengguna Baru",
               email: user.email,
               role: defaultRole,
-              status: "active",
+              active: true,
             };
 
             const { error: insertError } = await supabase
@@ -114,7 +114,7 @@ export function AuthProvider({ children }) {
           }
         }
 
-        if (profile && profile.status === "suspended") {
+        if (profile && profile.active === false) {
           await supabase.auth.signOut();
           setCurrentUser(null);
           setLoading(false);
@@ -125,8 +125,8 @@ export function AuthProvider({ children }) {
         setCurrentUser({
           ...user,
           role: profile?.role || USER_ROLES.ADMIN,
-          suspended: profile?.status === "suspended",
-          name: profile?.name || "Pengguna Baru",
+          suspended: profile?.active === false,
+          name: profile?.fullname || "Pengguna Baru",
           createdAt: profile?.created_at || null,
         });
       } catch (error) {
@@ -188,7 +188,7 @@ export function AuthProvider({ children }) {
       throw new Error("email-not-registered");
     }
 
-    if (profile.status === "suspended") {
+    if (profile.active === false) {
       throw new Error("user-suspended");
     }
 

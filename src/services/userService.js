@@ -16,13 +16,12 @@ export async function getAllUsers() {
   return data.map((u) => ({
     id: u.id,
     uid: u.id, // for compatibility
-    name: u.name,
+    name: u.fullname ?? "",
     email: u.email,
     role: u.role,
-    status: u.status,
-    suspended: u.status === "suspended", // for compatibility
+    status: u.active ? "active" : "suspended",
+    suspended: !u.active, // for compatibility
     createdAt: u.created_at,
-    updatedAt: u.updated_at,
   }));
 }
 
@@ -58,10 +57,10 @@ export async function registerUser({ name, email, password, role }) {
   // 2. Insert the user profile manually under sipakdesa_users
   const profileData = {
     id: newUser.id,
-    name,
+    fullname: name,
     email,
     role,
-    status: "active",
+    active: true,
   };
 
   const { error: profileError } = await supabase
@@ -78,10 +77,10 @@ export async function registerUser({ name, email, password, role }) {
 
 // Update user profile (name, role)
 export async function updateUser(uid, { name, role }) {
-  const updateData = {
-    name,
-    updated_at: new Date().toISOString(),
-  };
+  const updateData = {};
+  if (name !== undefined) {
+    updateData.fullname = name;
+  }
 
   if (role) {
     updateData.role = role;
@@ -101,13 +100,10 @@ export async function updateUser(uid, { name, role }) {
 
 // Toggle suspend/unsuspend status
 export async function toggleSuspendUser(uid, currentlySuspended) {
-  const newStatus = currentlySuspended ? "active" : "suspended";
-  
   const { error } = await supabase
     .from("sipakdesa_users")
     .update({
-      status: newStatus,
-      updated_at: new Date().toISOString(),
+      active: !!currentlySuspended,
     })
     .eq("id", uid);
 
@@ -115,7 +111,7 @@ export async function toggleSuspendUser(uid, currentlySuspended) {
     throw new Error(`Gagal memperbarui status penangguhan pengguna: ${error.message}`);
   }
 
-  return { uid, status: newStatus };
+  return { uid, status: currentlySuspended ? "active" : "suspended" };
 }
 
 // Delete user profile

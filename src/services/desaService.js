@@ -28,12 +28,37 @@ export async function getAllDesa() {
 }
 
 export async function createDesa(payload) {
+  // 1. Fetch existing alternatives to find the highest A<number> index
+  const { data: list, error: listError } = await supabase
+    .from("sipakdesa_alternatives")
+    .select("code");
+
+  let nextNum = 1;
+  if (!listError && list && list.length > 0) {
+    const numbers = list
+      .map((item) => {
+        const match = String(item.code || "").match(/^A(\d+)$/i);
+        return match ? parseInt(match[1], 10) : 0;
+      })
+      .filter((num) => !isNaN(num));
+    if (numbers.length > 0) {
+      nextNum = Math.max(...numbers) + 1;
+    }
+  }
+
+  const nextId = `A${nextNum}`;
+
   const { data, error } = await supabase
     .from("sipakdesa_alternatives")
     .insert([
       {
+        id: nextId,
+        code: nextId,
         name: payload.name ?? payload.nama ?? "",
         kecamatan: payload.kecamatan ?? "",
+        jumlah_padukuhan: payload.jumlah_padukuhan ?? null,
+        jumlah_dukuh: payload.jumlah_dukuh ?? null,
+        jumlah_bpkal: payload.jumlah_bpkal ?? null,
       },
     ])
     .select("id")
@@ -51,6 +76,9 @@ export async function updateDesa(id, payload) {
     .update({
       name: payload.name ?? payload.nama,
       kecamatan: payload.kecamatan,
+      jumlah_padukuhan: payload.jumlah_padukuhan ?? null,
+      jumlah_dukuh: payload.jumlah_dukuh ?? null,
+      jumlah_bpkal: payload.jumlah_bpkal ?? null,
     })
     .eq("id", id);
 

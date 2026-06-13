@@ -59,11 +59,11 @@ export async function saveBpkalConfig(periodId, payload = {}) {
   const dbPayload = {
     period_id: String(periodId),
     active: normalized.active !== false,
-    tarif_ketua: normalized.tarif_ketua,
-    tarif_wakil: normalized.tarif_wakil,
-    tarif_sekretaris: normalized.tarif_sekretaris,
-    tarif_bidang: normalized.tarif_bidang,
-    tarif_anggota: normalized.tarif_anggota,
+    tarif_ketua: normalized.tariffs?.ketua,
+    tarif_wakil: normalized.tariffs?.wakil,
+    tarif_sekretaris: normalized.tariffs?.sekretaris,
+    tarif_bidang: normalized.tariffs?.bidang,
+    tarif_anggota: normalized.tariffs?.anggota,
     templates: normalized.templates || {},
     updated_at: new Date().toISOString(),
   };

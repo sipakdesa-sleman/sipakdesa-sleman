@@ -66,7 +66,7 @@ export function normalizeBpkalConfig(data = {}) {
   return {
     period: String(data.period ?? data.periodId ?? "").trim(),
     active: data.active !== false,
-    tariffs: normalizeBpkalTariffs(data.tariffs ?? data.tariffsData ?? {}),
+    tariffs: normalizeBpkalTariffs(data.tariffs ?? data.tariffsData ?? data),
     templates,
     updatedAt: data.updatedAt ?? data.updated_at ?? null,
   };

@@ -124,6 +124,7 @@ export default function PraKalkulasi() {
   const [pageLoading, setPageLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState(null);
+  const [villages, setVillages] = useState([]);
   const [showParams, setShowParams] = useState(true);
   const [selectedVillage, setSelectedVillage] = useState(null);
   const [systemParamsReady, setSystemParamsReady] = useState(true);
@@ -169,6 +170,7 @@ export default function PraKalkulasi() {
         const ctx = await getPraKalkulasiContext(selectedPeriod);
         if (!alive) return;
         setPeriodMeta(ctx.period);
+        setVillages(ctx.villages || []);
         setSystemParams({
           umk_aktif: toInputValue(ctx.systemParameters.umk_aktif),
           rate_bpjs_kes: toInputValue(ctx.systemParameters.rate_bpjs_kes),
@@ -262,10 +264,15 @@ export default function PraKalkulasi() {
 
   const summary = useMemo(() => {
     const totals = result?.totals ?? {};
+    const hasResult = !!result;
     return {
-      totalDesa: detailRows.length,
-      totalDukuh: detailRows.reduce((sum, row) => sum + Number(row.jumlah_dukuh || 0), 0),
-      totalJumlahBpkal: detailRows.reduce((sum, row) => sum + Number(row.jumlah_bpkal || 0), 0),
+      totalDesa: hasResult ? detailRows.length : villages.length,
+      totalDukuh: hasResult
+        ? detailRows.reduce((sum, row) => sum + Number(row.jumlah_dukuh || 0), 0)
+        : villages.reduce((sum, row) => sum + Number(row.jumlah_dukuh ?? row.jumlah_padukuhan ?? 0), 0),
+      totalJumlahBpkal: hasResult
+        ? detailRows.reduce((sum, row) => sum + Number(row.jumlah_bpkal || 0), 0)
+        : villages.reduce((sum, row) => sum + Number(row.jumlah_bpkal ?? 0), 0),
       totalPotonganWajib: Number(totals.totalPotonganWajib ?? 0),
       sisaAlokasi: Number(result?.addKew ?? 0),
       addSil: Number(totals.addSil ?? 0),
@@ -274,7 +281,7 @@ export default function PraKalkulasi() {
       addBPKal: Number(totals.addBPKal ?? 0),
       addKeb: Number(totals.addKeb ?? 0),
     };
-  }, [detailRows, result]);
+  }, [detailRows, result, villages]);
 
   const handleParameterChange = (field, value) => {
     markDirty();
