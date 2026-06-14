@@ -14,8 +14,8 @@ import {
   BadgeDollarSign,
   User,
 } from "lucide-react";
-import logoSipakdesa from "../assets/sipakdesa-sleman-app-icon.svg";
-import logoSipakdesaSquare from "../assets/sipakdesa-sleman-icon-square.svg";
+import logoSipakdesa from "../assets/sipakdesa-sleman-app-icon.png";
+import logoSipakdesaSquare from "../assets/sipakdesa-sleman-icon-squere.png";
 import { useAuth, USER_ROLES } from "../context/AuthContext";
 import { useUnsavedChanges } from "../context/UnsavedChangesContext";
 
