@@ -269,7 +269,7 @@ Catatan: Akun login di Supabase Auth akan tetap ada karena batasan client-side. 
       </div>
 
       {/* Komponen Atas: Detail Akun */}
-      <div className="panel-info rounded-xl max-w-3xl">
+      <div className="panel-info rounded-xl">
         <div className="p-4 border-b border-blue-100 flex items-center gap-2">
           <User className="text-blue-700" size={20} />
           <h2 className="text-base font-bold text-gray-900">Rincian Akun Pengguna</h2>
