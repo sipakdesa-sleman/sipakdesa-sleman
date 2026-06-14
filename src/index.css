@@ -117,11 +117,12 @@ h1, h2, h3, h4, h5, h6 {
 /* Logo animations & micro-interactions */
 .logo-animate {
   @apply transition-all duration-500 ease-out;
+  filter: drop-shadow(0 4px 8px rgba(11, 46, 85, 0.12));
 }
 
 .logo-animate:hover {
-  transform: scale(1.06) rotate(3deg);
-  filter: brightness(1.05) drop-shadow(0 8px 16px rgba(59, 130, 246, 0.2));
+  transform: scale(1.04) rotate(1.5deg);
+  filter: brightness(1.05) drop-shadow(0 12px 24px rgba(11, 46, 85, 0.22));
 }
 
 /* Floating keyframe for Login logo */

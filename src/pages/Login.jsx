@@ -67,10 +67,10 @@ export default function Login() {
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 border border-gray-200">
         {/* Logo & Title */}
         <div className="flex flex-col items-center mb-8">
-          <div className="bg-gradient-to-br from-[#1a2847] to-[#234166] rounded-2xl p-4 mb-4 shadow-lg">
-            <img src={logoSipakdesa} alt="Logo" className="w-20 h-20 logo-animate logo-float logo-entrance" />
+          <div className="mb-6 flex justify-center w-full">
+            <img src={logoSipakdesa} alt="Logo SIPAKDESA Sleman" className="w-60 h-auto logo-animate logo-float logo-entrance" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Selamat Datang</h1>
+          <h1 className="text-2xl font-bold text-gray-900 text-center">Selamat Datang</h1>
           <p className="text-sm text-gray-600 mt-2 text-center">
             SPK Prioritas Alokasi Dana Desa Sleman
           </p>
