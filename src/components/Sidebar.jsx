@@ -97,11 +97,41 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
         <div className={`w-full flex items-center ${collapsed ? "justify-center" : "justify-center lg:justify-between"} text-white ${collapsed ? "mb-6" : "mb-8 lg:mb-10"}`}>
           {!collapsed ? (
             <div className="flex-shrink-0 flex items-center justify-center w-48">
-              <img src={logoSipakdesa} alt="Logo SPK" className="w-full h-auto logo-animate sidebar-logo-glow" />
+              <div className="relative w-full logo-animate flex items-center justify-center">
+                <img src={logoSipakdesa} alt="Logo SPK" className="w-full h-auto sidebar-logo-glow" />
+                <div 
+                  className="sidebar-shimmer pointer-events-none" 
+                  style={{
+                    maskImage: `url(${logoSipakdesa})`,
+                    WebkitMaskImage: `url(${logoSipakdesa})`,
+                    maskSize: 'contain',
+                    WebkitMaskSize: 'contain',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskPosition: 'center',
+                    WebkitMaskPosition: 'center'
+                  }}
+                />
+              </div>
             </div>
           ) : (
             <div className="flex-shrink-0 flex items-center justify-center w-10 h-10">
-              <img src={logoSipakdesaSquare} alt="Logo SPK" className="w-8 h-8 logo-animate sidebar-logo-glow" />
+              <div className="relative w-8 h-8 logo-animate flex items-center justify-center">
+                <img src={logoSipakdesaSquare} alt="Logo SPK" className="w-8 h-8 sidebar-logo-glow" />
+                <div 
+                  className="sidebar-shimmer pointer-events-none" 
+                  style={{
+                    maskImage: `url(${logoSipakdesaSquare})`,
+                    WebkitMaskImage: `url(${logoSipakdesaSquare})`,
+                    maskSize: 'contain',
+                    WebkitMaskSize: 'contain',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskPosition: 'center',
+                    WebkitMaskPosition: 'center'
+                  }}
+                />
+              </div>
             </div>
           )}
 
