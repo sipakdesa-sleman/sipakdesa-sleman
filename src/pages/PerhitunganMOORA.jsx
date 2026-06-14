@@ -554,11 +554,13 @@ export default function PerhitunganMOORA() {
 
   return (
     <div className="page-shell">
-      <div className="page-header">
-        <h1 className="page-title">Alokasi Kegiatan (MOORA)</h1>
-        <p className="page-subtitle">
-          Hitung prioritas alokasi dana desa menggunakan metode MOORA dengan bobot kriteria dari AHP.
-        </p>
+      <div className="page-header-container">
+        <div className="page-header">
+          <h1 className="page-title">Alokasi Kegiatan (MOORA)</h1>
+          <p className="page-subtitle">
+            Hitung prioritas dan perangkingan alokasi dana desa (ADD) kalurahan menggunakan metode MOORA dengan bobot kriteria dari AHP.
+          </p>
+        </div>
       </div>
 
       {/* Banner info */}

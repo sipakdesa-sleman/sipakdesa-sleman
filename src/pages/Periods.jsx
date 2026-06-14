@@ -141,11 +141,13 @@ export default function Periods() {
 
   return (
     <div className="page-shell">
-      <div className="page-header">
-        <h1 className="page-title">Periode</h1>
-        <p className="page-subtitle">
-          Kelola periode penilaian: buat periode, salin bobot AHP, set aktif, kunci periode, dan pantau status recalculation.
-        </p>
+      <div className="page-header-container">
+        <div className="page-header">
+          <h1 className="page-title">Periode</h1>
+          <p className="page-subtitle">
+            Kelola siklus tahun anggaran penilaian: pembuatan periode baru, penyalinan data bobot AHP, pengelolaan kunci global, serta pemantauan status kalkulasi.
+          </p>
+        </div>
       </div>
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-4">

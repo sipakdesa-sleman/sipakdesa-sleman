@@ -520,11 +520,11 @@ export default function DataDesa() {
   return (
     <div className="page-shell">
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div>
+      <div className="page-header-container">
+        <div className="page-header">
           <h1 className="page-title">Data Kalurahan</h1>
-          <p className="page-subtitle mt-1">
-            Menampilkan daftar kalurahan yang terdata dalam sistem SPK Prioritas Alokasi Dana Desa Kabupaten Sleman.
+          <p className="page-subtitle">
+            Kelola daftar profil wilayah kalurahan beserta input nilai kriteria mentah (dinamis) untuk setiap periode penilaian.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto md:justify-end">

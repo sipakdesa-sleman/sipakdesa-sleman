@@ -51,11 +51,13 @@ export default function Dashboard() {
 
   return (
     <div className="page-shell">
-      <div className="page-header">
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-subtitle">
-          Sistem Pendukung Keputusan Prioritas Alokasi Dana Desa Kabupaten Sleman.
-        </p>
+      <div className="page-header-container">
+        <div className="page-header">
+          <h1 className="page-title">Dashboard</h1>
+          <p className="page-subtitle">
+            Selamat datang di SIPAKDESA Sleman – Sistem Pendukung Keputusan Prioritas Alokasi Dana Desa Kabupaten Sleman.
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

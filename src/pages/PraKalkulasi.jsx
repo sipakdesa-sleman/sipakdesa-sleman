@@ -475,12 +475,13 @@ export default function PraKalkulasi() {
 
   return (
     <div className="page-shell">
-      <div className="page-header">
-        <h1 className="page-title">Alokasi Earmark</h1>
-        <p className="page-subtitle">
-          Halaman ini membaca parameter dinamis dari <span className="font-medium">system_parameters</span> dan data kalurahan dari <span className="font-medium">alternatives</span>, lalu menampilkan ringkasan 10 kolom utama agar preview tetap bersih.
-        </p>
-        <p className="text-xs text-slate-500">{periods.length} periode termuat.</p>
+      <div className="page-header-container">
+        <div className="page-header">
+          <h1 className="page-title">Alokasi Earmark</h1>
+          <p className="page-subtitle">
+            Lakukan pra-kalkulasi potongan wajib ADD Kabupaten (ADDSil, ADDKes, ADDKer, ADDKeb, dan Tunjangan BPKal) berdasarkan parameter alokasi earmark.
+          </p>
+        </div>
       </div>
 
       {periodMeta?.locked && (

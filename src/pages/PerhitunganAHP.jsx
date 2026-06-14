@@ -191,11 +191,13 @@ export default function PerhitunganAHP() {
 
   return (
     <div className="page-shell">
-      <div className="page-header">
-        <h1 className="page-title">Pembobotan Kriteria (AHP)</h1>
-        <p className="page-subtitle">
-          Tentukan bobot prioritas kriteria melalui matriks perbandingan berpasangan.
-        </p>
+      <div className="page-header-container">
+        <div className="page-header">
+          <h1 className="page-title">Pembobotan Kriteria (AHP)</h1>
+          <p className="page-subtitle">
+            Tentukan prioritas kepentingan kriteria menggunakan matriks perbandingan berpasangan (Analytic Hierarchy Process) untuk menghasilkan bobot kriteria.
+          </p>
+        </div>
       </div>
 
       {/* Periode Selection */}

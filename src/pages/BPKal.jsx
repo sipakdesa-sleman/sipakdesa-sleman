@@ -231,11 +231,13 @@ export default function BPKal() {
 
   return (
     <div className="page-shell space-y-6">
-      <div className="page-header">
-        <h1 className="page-title">BPKal</h1>
-        <p className="page-subtitle">
-          Kelola master formasi dan tarif BPKal per periode. Data kalurahan cukup menyimpan jumlah orang BPKal, lalu pra-kalkulasi mencocokkan ke template yang aktif.
-        </p>
+      <div className="page-header-container">
+        <div className="page-header">
+          <h1 className="page-title">BPKal</h1>
+          <p className="page-subtitle">
+            Kelola master template formasi keanggotaan dan rincian tarif tunjangan/operasional BPKal per periode.
+          </p>
+        </div>
       </div>
 
       {isLocked && (

@@ -22,14 +22,13 @@ export default function DetailPeringkat() {
 
   return (
     <div className="page-shell">
-      <div className="page-header">
-        <h1 className="page-title">
-        Detail Perhitungan – {data.desa}
-        </h1>
-
-        <p className="page-subtitle">
-          Rank: <b>{data.rank}</b> | Yi: <b>{data.yi.toFixed(4)}</b>
-        </p>
+      <div className="page-header-container">
+        <div className="page-header">
+          <h1 className="page-title">Detail Perhitungan – {data.desa}</h1>
+          <p className="page-subtitle">
+            Visualisasi normalisasi matriks, perkalian bobot kriteria, dan akumulasi nilai optimasi Yi untuk Kalurahan {data.desa}. (Peringkat: <b>{data.rank}</b> | Yi: <b>{data.yi.toFixed(4)}</b>)
+          </p>
+        </div>
       </div>
 
       <DetailMatrix scores={data.scores} />

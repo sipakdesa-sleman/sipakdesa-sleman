@@ -264,11 +264,13 @@ export default function KriteriaBobot() {
 
   return (
     <div className="page-shell">
-      <div className="page-header">
-        <h1 className="page-title">Kriteria & Bobot</h1>
-        <p className="page-subtitle">
-          Kelola kriteria dan parameter konversi per kriteria. Bobot AHP tetap ditampilkan terpisah sebagai hasil perhitungan.
-        </p>
+      <div className="page-header-container">
+        <div className="page-header">
+          <h1 className="page-title">Kriteria & Bobot</h1>
+          <p className="page-subtitle">
+            Kelola parameter kriteria dan parameter konversi kualitatif, serta lihat hasil bobot prioritas AHP yang tersimpan untuk periode aktif.
+          </p>
+        </div>
       </div>
 
       <div className="panel-info p-4 flex gap-3 items-start">

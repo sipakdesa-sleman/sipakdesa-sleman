@@ -908,10 +908,12 @@ export default function PeringkatHasil() {
 
   return (
     <div className="page-shell">
-      <div className="flex flex-col md:flex-row items-start justify-between gap-4 w-full">
-        <div>
+      <div className="page-header-container">
+        <div className="page-header">
           <h1 className="page-title">Hasil & Peringkat</h1>
-          <p className="page-subtitle">Hasil akhir perhitungan AHP-MOORA untuk prioritas alokasi dana desa.</p>
+          <p className="page-subtitle">
+            Lihat laporan akhir hasil perhitungan integrasi AHP-MOORA, urutan peringkat prioritas kalurahan, serta cetak/unduh laporan resmi.
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <PeriodSelector

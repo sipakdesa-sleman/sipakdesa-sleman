@@ -259,11 +259,13 @@ Catatan: Akun login di Supabase Auth akan tetap ada karena batasan client-side. 
 
   return (
     <div className="page-shell space-y-6">
-      <div>
-        <h1 className="page-title">Informasi Profil & Detail Akun</h1>
-        <p className="page-subtitle mt-1">
-          Pantau rincian kredensial akun Anda serta lakukan pemulihan kata sandi dengan aman.
-        </p>
+      <div className="page-header-container">
+        <div className="page-header">
+          <h1 className="page-title">Profil & Pengguna</h1>
+          <p className="page-subtitle">
+            Kelola detail kredensial profil Anda dan lakukan pemulihan kata sandi, serta atur akses kontrol pengguna sistem (khusus Super Admin).
+          </p>
+        </div>
       </div>
 
       {/* Komponen Atas: Detail Akun */}
