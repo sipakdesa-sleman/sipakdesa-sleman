@@ -94,7 +94,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
     >
       <div className={`p-4 ${collapsed ? "lg:px-2 lg:py-3" : "lg:p-6"} flex flex-col h-full ${collapsed ? "lg:items-center" : ""}`}>
         {/* expand button moved to layout to avoid overflow */}
-        <div className={`w-full flex items-center justify-center lg:justify-between text-white ${collapsed ? "mb-6" : "mb-8 lg:mb-10"}`}>
+        <div className={`w-full flex items-center ${collapsed ? "justify-center" : "justify-center lg:justify-between"} text-white ${collapsed ? "mb-6" : "mb-8 lg:mb-10"}`}>
           {!collapsed ? (
             <div className="bg-white rounded-xl py-2.5 px-4 shadow-lg flex-shrink-0 flex items-center justify-center w-48">
               <img src={logoSipakdesa} alt="Logo SPK" className="w-full h-auto logo-animate" />
