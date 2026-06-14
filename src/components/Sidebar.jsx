@@ -14,7 +14,7 @@ import {
   BadgeDollarSign,
   User,
 } from "lucide-react";
-import logoSipakdesa from "../assets/logo-sipakdesa-blue.png";
+import logoSipakdesa from "../assets/sipakdesa-sleman-app-icon.svg";
 import { useAuth, USER_ROLES } from "../context/AuthContext";
 import { useUnsavedChanges } from "../context/UnsavedChangesContext";
 
@@ -95,7 +95,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
         {/* expand button moved to layout to avoid overflow */}
         <div className={`w-full flex items-start justify-center lg:justify-between text-white ${collapsed ? "mb-6" : "mb-8 lg:mb-10"}`}>
           <div className="bg-white rounded-xl p-2 flex-shrink-0 shadow-lg">
-            <img src={logoSipakdesa} alt="Logo SPK" className={`w-12 h-12 ${collapsed ? "lg:w-8 lg:h-8" : "lg:w-14 lg:h-14"}`} />
+            <img src={logoSipakdesa} alt="Logo SPK" className={`w-12 h-12 logo-animate ${collapsed ? "lg:w-8 lg:h-8" : "lg:w-14 lg:h-14"}`} />
           </div>
 
           {!collapsed && onToggleCollapse && (

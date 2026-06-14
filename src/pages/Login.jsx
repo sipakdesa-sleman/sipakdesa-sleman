@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import logoSipakdesa from "../assets/logo-sipakdesa-blue.png";
+import logoSipakdesa from "../assets/sipakdesa-sleman-app-icon.svg";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -68,7 +68,7 @@ export default function Login() {
         {/* Logo & Title */}
         <div className="flex flex-col items-center mb-8">
           <div className="bg-gradient-to-br from-[#1a2847] to-[#234166] rounded-2xl p-4 mb-4 shadow-lg">
-            <img src={logoSipakdesa} alt="Logo" className="w-20 h-20" />
+            <img src={logoSipakdesa} alt="Logo" className="w-20 h-20 logo-animate logo-float logo-entrance" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Selamat Datang</h1>
           <p className="text-sm text-gray-600 mt-2 text-center">
