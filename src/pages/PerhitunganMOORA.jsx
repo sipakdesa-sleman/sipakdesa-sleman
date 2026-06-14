@@ -791,9 +791,9 @@ export default function PerhitunganMOORA() {
             <table className="min-w-full text-sm">
               <thead className="bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-900">
                 <tr>
-                  <th className="border-b-2 border-emerald-200 p-3 text-left font-bold">Nama Kalurahan</th>
+                  <th className="border-b-2 border-emerald-200 p-3 text-left font-bold min-w-[200px]">Nama Kalurahan</th>
                   {criteria.map(c => (
-                    <th key={c.code} className="border-b-2 border-emerald-200 p-3 text-center">
+                    <th key={c.code} className="border-b-2 border-emerald-200 p-3 text-center min-w-[140px]">
                       <div className="font-bold text-emerald-900">{c.name}</div>
                     </th>
                   ))}
