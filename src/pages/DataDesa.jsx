@@ -594,7 +594,7 @@ export default function DataDesa() {
       {/* Search & Table */}
       <div className="panel-info rounded-xl">
         <div className="p-4 border-b border-green-100">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <input
               type="text"
               placeholder="Cari nama kalurahan..."
@@ -603,27 +603,29 @@ export default function DataDesa() {
                 setSearchTerm(e.target.value);
                 setPage(1);
               }}
-              className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full md:max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>Tampilkan</span>
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setPage(1);
-                }}
-                className="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {[10, 20, 30, 40, 50].map(size => (
-                  <option key={size} value={size}>{size}</option>
-                ))}
-              </select>
-              <span>per halaman</span>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 justify-between md:justify-end w-full md:w-auto">
+              <div className="flex items-center gap-2">
+                <span>Tampilkan</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {[10, 20, 30, 40, 50].map(size => (
+                    <option key={size} value={size}>{size}</option>
+                  ))}
+                </select>
+                <span>per halaman</span>
+              </div>
               <button
                 onClick={() => openCreateModal()}
                 disabled={isLocked}
-                className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2 shrink-0"
               >
                 <Plus size={16} /> Tambah Kalurahan
               </button>
