@@ -133,8 +133,11 @@ export default function PeringkatHasil() {
   useEffect(() => {
     if (!selectedPeriod) return;
 
+    let active = true;
+
     const loadRuns = async () => {
       const runsData = await getMooraRuns(selectedPeriod);
+      if (!active) return;
       
       if (!runsData || runsData.length === 0) {
         setRuns([]);
@@ -158,17 +161,30 @@ export default function PeringkatHasil() {
     };
 
     loadRuns();
+
+    return () => {
+      active = false;
+    };
   }, [selectedPeriod, queryRun]);
 
   useEffect(() => {
     if (!selectedPeriod || !selectedRun) return;
 
+    let active = true;
+
     const loadResults = async () => {
+      // Verify that the selectedRun belongs to the current runs of the selectedPeriod
+      const runMeta = runs.find(r => String(r.id || r.runId) === String(selectedRun));
+      if (!runMeta || String(runMeta.period) !== String(selectedPeriod)) {
+        return;
+      }
+
       // 1. Fetch criteria first to get names and types
       let nameMap = {};
       let typeMap = {};
       try {
         const list = await getCriteria();
+        if (!active) return;
         (list || []).forEach((c) => {
           const code = String(c.code).toUpperCase();
           nameMap[code] = c.name || code;
@@ -181,11 +197,13 @@ export default function PeringkatHasil() {
 
       // 2. Get results from selected run
       const mooraResults = await getResultsByRun(selectedRun);
+      if (!active) return;
 
       // 3. Load all village master data to get kecamatan and code
       let villageMap = {};
       try {
         const villages = await getAllDesa();
+        if (!active) return;
         villages.forEach(v => {
           villageMap[v.id] = v;
         });
@@ -200,6 +218,7 @@ export default function PeringkatHasil() {
       if (praRunId) {
         try {
           const praRun = await getPraKalkulasiRun(selectedPeriod, praRunId);
+          if (!active) return;
           if (praRun && praRun.perVillage) {
             praRun.perVillage.forEach(item => {
               praVillageMap[item.id] = item;
@@ -263,12 +282,11 @@ export default function PeringkatHasil() {
 
       setResults(mergedResults);
 
-      // Find ahpResultsId from runs list
-      const runMeta = runs.find(r => String(r.id || r.runId) === String(selectedRun));
       const ahpResultsId = runMeta?.ahpResultsId;
 
       if (ahpResultsId) {
         const detail = await getAhpById(ahpResultsId);
+        if (!active) return;
         setAhpMeta({ CR: detail?.CR ?? null, period: detail?.period ?? null });
         
         // Sort weights by criteria code (C1, C2, C3, ...)
@@ -285,12 +303,17 @@ export default function PeringkatHasil() {
         
         setWeights(sortedWeights);
       } else {
+        if (!active) return;
         setAhpMeta(null);
         setWeights([]);
       }
     };
 
     loadResults();
+
+    return () => {
+      active = false;
+    };
   }, [selectedPeriod, selectedRun, periods, runs]);
 
 
