@@ -294,7 +294,7 @@ export default function Periods() {
                     <td className="p-3 align-top">
                       <div className="font-semibold text-slate-800">{p.year ?? p.id}</div>
                       <div className="mt-1 text-xs text-slate-500">
-                        {p.yearNumber ? `Tahun ${p.yearNumber}` : "Periode non-numerik"}
+                        {p.year ? `Tahun ${p.year}` : "Periode non-numerik"}
                       </div>
                     </td>
 

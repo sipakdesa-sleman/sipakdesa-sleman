@@ -423,7 +423,6 @@ export default function KriteriaBobot() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="font-semibold text-gray-900 break-words">{c.code} - {c.name}</p>
-                        <p className="text-xs text-gray-500 mt-1">{c.type}</p>
                       </div>
                       <div className="shrink-0 text-right">
                         <p className="text-xs text-gray-500">Bobot</p>
