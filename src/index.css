@@ -1,6 +1,22 @@
 @import "tailwindcss";
 
-/* Optional: base font smoothing and body reset */
+/* Base html scaling rules for desktop screen scale normalisation */
+html {
+  font-size: 15px;
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 13.5px;
+  }
+}
+
+@media (min-width: 1440px) {
+  html {
+    font-size: 14px;
+  }
+}
+
 html, body, #root { 
   height: 100%; 
 }
@@ -29,23 +45,23 @@ body {
 
 /* Shared page rhythm for consistent spacing and headers */
 .page-shell {
-  @apply space-y-4 md:space-y-5;
+  @apply space-y-3.5 md:space-y-4;
 }
 
 .page-header-container {
-  @apply flex flex-col gap-3 md:flex-row md:items-start md:justify-between pb-3.5 border-b border-slate-200/70 mb-4;
+  @apply flex flex-col gap-2.5 md:flex-row md:items-start md:justify-between pb-2.5 border-b border-slate-200/70 mb-3;
 }
 
 .page-header {
-  @apply flex flex-col gap-1;
+  @apply flex flex-col gap-0.5;
 }
 
 .page-title {
-  @apply text-xl lg:text-2xl font-bold tracking-tight text-gray-950;
+  @apply text-lg lg:text-xl font-bold tracking-tight text-gray-950;
 }
 
 .page-subtitle {
-  @apply max-w-4xl text-xs lg:text-[13px] text-slate-500 leading-relaxed mt-0.5;
+  @apply max-w-4xl text-[11px] lg:text-xs text-slate-500 leading-relaxed mt-0.5;
 }
 
 /* Reusable panel tones to avoid flat/washed cards */

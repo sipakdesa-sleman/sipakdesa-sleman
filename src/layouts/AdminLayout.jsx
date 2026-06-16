@@ -53,8 +53,8 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="h-screen flex bg-gradient-to-br from-purple-50 via-blue-50 to-purple-100 p-3 lg:p-4 lg:pl-0 overflow-x-hidden">
-      <div className="flex flex-1 h-full relative lg:pl-4 overflow-hidden">
+    <div className="h-screen flex bg-gradient-to-br from-purple-50 via-blue-50 to-purple-100 p-2 lg:p-2.5 lg:pl-0 overflow-x-hidden">
+      <div className="flex flex-1 h-full relative lg:pl-2.5 overflow-hidden">
         {/* Mobile Overlay */}
         {mobileMenuOpen && (
           <div 
@@ -77,10 +77,10 @@ export default function AdminLayout() {
         {/* Desktop toggle button (placed in header to avoid overflow) */}
 
         <main className={`flex-1 flex flex-col h-full bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden ml-0 ${
-          sidebarCollapsed ? "lg:ml-2" : "lg:ml-3"
+          sidebarCollapsed ? "lg:ml-1.5" : "lg:ml-2"
         }`}>
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#1a2847] via-[#1e3559] to-[#234166] backdrop-blur px-4 md:px-6 py-2.5 md:py-3 flex items-center justify-between shadow-lg relative z-30" ref={popoverRef}>
+          <div className="bg-gradient-to-r from-[#1a2847] via-[#1e3559] to-[#234166] backdrop-blur px-4 md:px-5 py-2 md:py-2.5 flex items-center justify-between shadow-lg relative z-30" ref={popoverRef}>
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -96,6 +96,7 @@ export default function AdminLayout() {
                   className="hidden lg:inline-flex ml-2 p-2 rounded-lg hover:bg-white/10 transition text-white"
                   title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                   aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  aria-expanded={!sidebarCollapsed}
                 >
                   <ChevronRight size={20} />
                 </button>
@@ -109,18 +110,18 @@ export default function AdminLayout() {
             {/* Profile Button */}
             <button
               onClick={() => setOpenProfile((prev) => !prev)}
-              className="flex items-center gap-2 md:gap-3 bg-white/10 border border-white/30 rounded-full px-2 md:px-3 py-2 hover:bg-white/20 transition backdrop-blur"
+              className="flex items-center gap-1.5 md:gap-2 bg-white/10 border border-white/30 rounded-full px-2 md:px-2.5 py-1 md:py-1.5 hover:bg-white/20 transition backdrop-blur"
             >
               <div className="text-right hidden sm:block">
-                <p className="text-xs md:text-sm font-semibold text-white">{currentUser?.email || "Administrator"}</p>
-                <p className="text-[10px] md:text-xs text-blue-100">
+                <p className="text-[11px] md:text-xs font-semibold text-white">{currentUser?.email || "Administrator"}</p>
+                <p className="text-[9px] md:text-[10px] text-blue-100">
                   {currentUser?.role === USER_ROLES.SUPER_ADMIN ? "Super Admin" : "Admin"}
                 </p>
               </div>
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-white/30 to-white/10 flex items-center justify-center text-white font-bold text-xs md:text-sm border-2 border-white/40">
+              <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-white/30 to-white/10 flex items-center justify-center text-white font-bold text-[11px] md:text-xs border-2 border-white/40">
                 {initials}
               </div>
-              <User size={16} className="text-white/80 hidden sm:block" />
+              <User size={14} className="text-white/80 hidden sm:block" />
             </button>
 
             {openProfile && (
@@ -161,7 +162,7 @@ export default function AdminLayout() {
           </div>
 
           {/* Content */}
-          <div className="flex-1 bg-white p-4 md:p-5 lg:p-6 overflow-auto">
+          <div className="flex-1 bg-white p-3 md:p-4 lg:p-5 overflow-auto">
             <Outlet />
           </div>
         </main>
