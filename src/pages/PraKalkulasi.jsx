@@ -532,22 +532,33 @@ export default function PraKalkulasi() {
       grouped[kec].push(rowDetails);
     });
 
-    const kecKeys = Object.keys(grouped).sort();
+    const compareByCode = (a, b) => {
+      const aCode = String(a.code ?? "").trim();
+      const bCode = String(b.code ?? "").trim();
+      if (aCode && bCode) {
+        // Try numeric comparison first (extract digits from code e.g. A1 -> 1)
+        const aNum = parseInt(aCode.replace(/\D/g, ""), 10);
+        const bNum = parseInt(bCode.replace(/\D/g, ""), 10);
+        if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
+        // Fallback to string comparison
+        return aCode.localeCompare(bCode, undefined, { numeric: true });
+      }
+      if (aCode) return -1;
+      if (bCode) return 1;
+      return (a.nama || a.name || "").localeCompare(b.nama || b.name || "");
+    };
+
+    // Sort Kapanewon groups (kecKeys) by the minimum alternative code of their items to match Bupati Annex order (geographical)
+    const kecKeys = Object.keys(grouped).sort((kecA, kecB) => {
+      const minA = [...grouped[kecA]].sort(compareByCode)[0];
+      const minB = [...grouped[kecB]].sort(compareByCode)[0];
+      if (!minA) return 1;
+      if (!minB) return -1;
+      return compareByCode(minA, minB);
+    });
+
     kecKeys.forEach((kec) => {
-      grouped[kec].sort((a, b) => {
-        const aCode = String(a.code ?? "").trim();
-        const bCode = String(b.code ?? "").trim();
-        if (aCode && bCode) {
-          // Extract the digits to compare numerically (e.g. A1 -> 1)
-          const aNum = parseInt(aCode.replace(/\D/g, ""), 10);
-          const bNum = parseInt(bCode.replace(/\D/g, ""), 10);
-          if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
-          return aCode.localeCompare(bCode, undefined, { numeric: true });
-        }
-        if (aCode) return -1;
-        if (bCode) return 1;
-        return (a.nama || a.name || "").localeCompare(b.nama || b.name || "");
-      });
+      grouped[kec].sort(compareByCode);
     });
 
     const createEmptyAccumulator = () => ({
