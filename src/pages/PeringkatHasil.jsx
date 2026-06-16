@@ -950,13 +950,15 @@ export default function PeringkatHasil() {
           />
           {results.length > 0 && (
             <>
-              <button
-                type="button"
-                onClick={handleExportExcel}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 text-sm font-semibold transition hover:bg-emerald-100 hover:border-emerald-300 shadow-sm cursor-pointer"
-              >
-                <Download size={16} /> Export Excel
-              </button>
+              {viewMode === "lampiran" && (
+                <button
+                  type="button"
+                  onClick={handleExportExcel}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 text-sm font-semibold transition hover:bg-emerald-100 hover:border-emerald-300 shadow-sm cursor-pointer"
+                >
+                  <Download size={16} /> Export Excel
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handleExportPDF}

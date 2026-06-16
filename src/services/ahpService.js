@@ -33,9 +33,10 @@ export async function getAHPCriteriaWeights(period) {
     if (!error && data) {
       return { weights: normalizeWeights(data.weights), ahpId: data.id };
     }
+    return { weights: {}, ahpId: null };
   }
 
-  // fallback: latest active
+  // fallback: latest active (only if no period is specified)
   const { data: latest, error } = await supabase
     .from("sipakdesa_ahp_runs")
     .select("id, weights")
@@ -67,6 +68,7 @@ export async function getLatestAhpMeta(period) {
         createdAt: data.created_at ?? null,
       };
     }
+    return { CR: null, period };
   }
 
   const { data: latest } = await supabase

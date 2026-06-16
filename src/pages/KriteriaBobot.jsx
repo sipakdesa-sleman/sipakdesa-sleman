@@ -68,20 +68,20 @@ export default function KriteriaBobot() {
 
       setCriteria(criteriaData);
       setParameters(parameterData);
-      setAhpPeriods(allAhp);
+      setAhpPeriods(periodList);
 
-      const activeAhp = allAhp[0] ?? null;
       const activePeriodDoc = periodList.find((p) => p.isActive || p.active) ?? null;
+      const activeAhp = allAhp[0] ?? null;
       const latestYear = periodList
         .map((p) => p.year)
         .filter((y) => y !== undefined && y !== null)
         .sort((a, b) => Number(b) - Number(a))[0];
 
-      const chosenPeriod = activeAhp?.id ?? activePeriodDoc?.year ?? latestYear ?? null;
+      const chosenPeriod = activePeriodDoc?.year ?? activePeriodDoc?.id ?? activeAhp?.id ?? latestYear ?? null;
       const periodParam = chosenPeriod ? String(chosenPeriod) : undefined;
 
       setDisplayPeriod(chosenPeriod ?? "-");
-      setSelectedAhpPeriod(chosenPeriod ?? (allAhp[0]?.id ?? ""));
+      setSelectedAhpPeriod(chosenPeriod ?? (periodList[0]?.id ?? ""));
 
       const weightData = await getCriteriaWithWeight(periodParam);
       setCriteriaWeights(weightData);
@@ -398,10 +398,10 @@ export default function KriteriaBobot() {
                   value={selectedAhpPeriod}
                   onChange={(e) => setSelectedAhpPeriod(e.target.value)}
                 >
-                  {ahpPeriods.length === 0 && <option value="">Belum ada data AHP</option>}
+                  {ahpPeriods.length === 0 && <option value="">Belum ada data periode</option>}
                   {ahpPeriods.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.id} {p.active ? "(aktif)" : "(non-aktif)"}
+                      {p.year ?? p.id} {p.active ? "(aktif)" : ""} {!p.ahpDone ? "(bobot kosong)" : ""}
                     </option>
                   ))}
                 </select>

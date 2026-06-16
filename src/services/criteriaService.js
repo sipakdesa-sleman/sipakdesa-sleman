@@ -201,9 +201,7 @@ export async function getCriteriaWithWeight(period) {
     if (!error && ahpRun) {
       weightMap = normalizeWeights(ahpRun.weights);
     }
-  }
-
-  if (!Object.keys(weightMap).length) {
+  } else {
     const { data: latestAhpRun, error } = await supabase
       .from("sipakdesa_ahp_runs")
       .select("weights")
