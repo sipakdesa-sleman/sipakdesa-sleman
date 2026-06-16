@@ -1194,7 +1194,7 @@ export default function PraKalkulasi() {
                   <button
                     onClick={handleSaveParameters}
                     disabled={running || periodMeta?.locked}
-                    className="inline-flex items-center justify-center rounded-xl bg-[#1a2847] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#14213a] disabled:cursor-not-allowed disabled:opacity-60 shrink-0"
+                    className="btn-action rounded-xl px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 shrink-0"
                   >
                     Simpan Asumsi & Estimasi
                   </button>
@@ -1207,14 +1207,14 @@ export default function PraKalkulasi() {
             <button
               onClick={handleExecute}
               disabled={running || periodMeta?.locked}
-              className="inline-flex items-center justify-center rounded-xl bg-[#1a2847] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#14213a] disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-action rounded-xl px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
             >
               {running ? "Memproses..." : "Eksekusi Otomasi Pra-Kalkulasi"}
             </button>
             <button
               onClick={() => setResult(null)}
               disabled={periodMeta?.locked}
-              className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-secondary rounded-xl px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
             >
               Bersihkan Preview
             </button>
@@ -1262,7 +1262,7 @@ export default function PraKalkulasi() {
               <button
                 type="button"
                 onClick={handleFinalize}
-                className="rounded-xl border border-[#1a2847] bg-[#1a2847] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#14213a]"
+                className="btn-action rounded-xl px-4 py-2 text-sm font-semibold transition"
               >
                 Finalisasi & Kirim ke MOORA
               </button>

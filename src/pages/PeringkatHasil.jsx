@@ -9,6 +9,7 @@ import { getAllDesa } from "../services/desaService";
 import { getPraKalkulasiRun } from "../services/praKalkulasiService";
 import { useDialog } from "../context/DialogProvider";
 import PeriodSelector from "../components/PeriodSelector";
+import { Download, FileDown } from "lucide-react";
 
 
 const fmtRpFullNoSymbol = (value) => {
@@ -938,7 +939,7 @@ export default function PeringkatHasil() {
             Lihat laporan akhir hasil perhitungan integrasi AHP-MOORA, urutan peringkat prioritas kalurahan, serta cetak/unduh laporan resmi.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto md:justify-end">
           <PeriodSelector
             value={selectedPeriod}
             onChange={v => setSelectedPeriod(v)}
@@ -947,8 +948,23 @@ export default function PeringkatHasil() {
             onRunChange={setSelectedRun}
             showRunSelector={runs.length > 1}
           />
-          {viewMode === "analisis" && (
-            <button onClick={handleExportPDF} className="btn-action">Export PDF</button>
+          {results.length > 0 && (
+            <>
+              <button
+                type="button"
+                onClick={handleExportExcel}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 text-sm font-semibold transition hover:bg-emerald-100 hover:border-emerald-300 shadow-sm cursor-pointer"
+              >
+                <Download size={16} /> Export Excel
+              </button>
+              <button
+                type="button"
+                onClick={handleExportPDF}
+                className="btn-action flex items-center gap-1.5 cursor-pointer"
+              >
+                <FileDown size={16} /> Export PDF
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -1019,26 +1035,6 @@ export default function PeringkatHasil() {
                     className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
                   />
                 </div>
-              </div>
-              <div className="flex gap-2 justify-end">
-                <button
-                  onClick={handleExportExcel}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Export Excel
-                </button>
-                <button
-                  onClick={handleExportPDF}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Export PDF
-                </button>
               </div>
             </div>
 

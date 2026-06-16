@@ -321,14 +321,14 @@ export default function PerhitunganAHP() {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={handleCalculate}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold"
+            className="btn-action rounded-xl px-5 py-2.5 text-sm font-semibold transition"
           >
             Hitung Bobot AHP
           </button>
           {result?.isConsistent && (
             <button
               onClick={handleSave}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold"
+              className="bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition flex items-center gap-1.5 cursor-pointer"
             >
               Simpan Bobot
             </button>
