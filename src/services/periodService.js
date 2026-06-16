@@ -1,5 +1,29 @@
 import { supabase } from "../supabase/supabaseConfig";
 
+function clearSessionDraftsForPeriod(periodId) {
+  const pId = String(periodId);
+  const draftKeys = [
+    "sipakdesa:draft:pra-kalkulasi",
+    "sipakdesa:draft:moora",
+    "sipakdesa:draft:ahp"
+  ];
+  draftKeys.forEach(key => {
+    try {
+      if (typeof window !== "undefined" && window.sessionStorage) {
+        const raw = window.sessionStorage.getItem(key);
+        if (raw) {
+          const draft = JSON.parse(raw);
+          if (draft && String(draft.selectedPeriod) === String(pId)) {
+            window.sessionStorage.removeItem(key);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn(`Gagal membersihkan draf untuk kunci ${key}:`, e);
+    }
+  });
+}
+
 async function deletePeriodRelatedData(periodId) {
   const pId = String(periodId);
 
@@ -268,6 +292,7 @@ export const deletePeriod = async (periodId) => {
     .eq("id", pId);
 
   if (error) throw new Error(`Gagal menghapus periode: ${error.message}`);
+  clearSessionDraftsForPeriod(pId);
   return { success: true, id: pId };
 };
 
@@ -339,5 +364,6 @@ export const deletePeriodForce = async (periodId) => {
     throw new Error(`Gagal menghapus periode: ${error.message}`);
   }
 
+  clearSessionDraftsForPeriod(pId);
   return { success: true, id: pId };
 };
