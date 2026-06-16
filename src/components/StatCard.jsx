@@ -9,7 +9,7 @@ export default function StatCard({ title, value, subtitle, leadingIcon }) {
   const gradient = palette[key % palette.length];
 
   return (
-    <div className={`bg-gradient-to-br ${gradient} rounded-2xl shadow-lg p-5 flex flex-col gap-3 text-white border border-white/20`}>
+    <div className={`bg-gradient-to-br ${gradient} rounded-2xl shadow-lg p-4 flex flex-col gap-2 text-white border border-white/20`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-medium tracking-wide uppercase text-white/80">
@@ -23,7 +23,7 @@ export default function StatCard({ title, value, subtitle, leadingIcon }) {
         )}
       </div>
 
-      <div className="text-3xl font-semibold">
+      <div className="text-2xl font-semibold">
         {value ?? "-"}
       </div>
 

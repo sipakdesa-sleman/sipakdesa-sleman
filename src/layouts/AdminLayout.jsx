@@ -53,8 +53,8 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="h-screen flex bg-gradient-to-br from-purple-50 via-blue-50 to-purple-100 p-4 lg:p-6 lg:pl-0 overflow-x-hidden">
-      <div className="flex flex-1 h-full relative lg:pl-6 overflow-hidden">
+    <div className="h-screen flex bg-gradient-to-br from-purple-50 via-blue-50 to-purple-100 p-3 lg:p-4 lg:pl-0 overflow-x-hidden">
+      <div className="flex flex-1 h-full relative lg:pl-4 overflow-hidden">
         {/* Mobile Overlay */}
         {mobileMenuOpen && (
           <div 
@@ -77,10 +77,10 @@ export default function AdminLayout() {
         {/* Desktop toggle button (placed in header to avoid overflow) */}
 
         <main className={`flex-1 flex flex-col h-full bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden ml-0 ${
-          sidebarCollapsed ? "lg:ml-2" : "lg:ml-4"
+          sidebarCollapsed ? "lg:ml-2" : "lg:ml-3"
         }`}>
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#1a2847] via-[#1e3559] to-[#234166] backdrop-blur px-4 md:px-8 py-4 md:py-5 flex items-center justify-between shadow-lg relative z-30" ref={popoverRef}>
+          <div className="bg-gradient-to-r from-[#1a2847] via-[#1e3559] to-[#234166] backdrop-blur px-4 md:px-6 py-2.5 md:py-3 flex items-center justify-between shadow-lg relative z-30" ref={popoverRef}>
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -161,7 +161,7 @@ export default function AdminLayout() {
           </div>
 
           {/* Content */}
-          <div className="flex-1 bg-white p-4 md:p-6 lg:p-8 overflow-auto">
+          <div className="flex-1 bg-white p-4 md:p-5 lg:p-6 overflow-auto">
             <Outlet />
           </div>
         </main>

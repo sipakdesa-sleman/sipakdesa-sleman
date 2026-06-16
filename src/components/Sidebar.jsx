@@ -89,14 +89,14 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
   return (
     <aside
       className={`relative box-border h-full bg-gradient-to-b from-[#1a2847] via-[#1e3559] to-[#234166] flex flex-col shadow-2xl rounded-tr-3xl rounded-br-3xl flex-shrink-0 lg:overflow-visible overflow-hidden transition-all duration-300 ease-out ${
-        collapsed ? "w-64 lg:w-20" : "w-64 lg:w-72"
+        collapsed ? "w-60 lg:w-20" : "w-60 lg:w-64"
       }`}
     >
-      <div className={`p-4 ${collapsed ? "lg:px-2 lg:py-3" : "lg:p-6"} flex flex-col h-full ${collapsed ? "lg:items-center" : ""}`}>
+      <div className={`p-3.5 ${collapsed ? "lg:px-2 lg:py-3" : "lg:p-4.5"} flex flex-col h-full ${collapsed ? "lg:items-center" : ""}`}>
         {/* expand button moved to layout to avoid overflow */}
-        <div className={`w-full flex items-center ${collapsed ? "justify-center" : "justify-center lg:justify-between"} text-white ${collapsed ? "mb-6" : "mb-8 lg:mb-10"}`}>
+        <div className={`w-full flex items-center ${collapsed ? "justify-center" : "justify-center lg:justify-between"} text-white ${collapsed ? "mb-4" : "mb-5 lg:mb-6"}`}>
           {!collapsed ? (
-            <div className="flex-shrink-0 flex items-center justify-center w-48">
+            <div className="flex-shrink-0 flex items-center justify-center w-40">
               <div className="relative w-full logo-animate flex items-center justify-center">
                 <img src={logoSipakdesa} alt="Logo SPK" className="w-full h-auto sidebar-logo-glow" />
                 <div 
@@ -149,7 +149,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
           )}
         </div>
 
-        <nav className={`flex-1 overflow-y-auto pr-1 ${collapsed ? "space-y-3" : "space-y-5 lg:space-y-6"}`}>
+        <nav className={`flex-1 overflow-y-auto pr-1 ${collapsed ? "space-y-2.5" : "space-y-3.5 lg:space-y-4"}`}>
           {navigationSections
             .filter((section) => {
               if (section.title === "Sistem") {
@@ -158,14 +158,14 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
               return true;
             })
             .map((section) => (
-            <div key={section.title ?? "dashboard"} className="space-y-2">
+            <div key={section.title ?? "dashboard"} className="space-y-1.5">
               {section.title && (
-                <div className="px-3 lg:px-4 text-[10px] lg:text-[11px] uppercase tracking-[0.18em] text-white/50 font-semibold">
+                <div className="px-2.5 lg:px-3 text-[9px] lg:text-[10px] uppercase tracking-[0.18em] text-white/50 font-semibold">
                   <span className={collapsed ? "lg:hidden" : ""}>{section.title}</span>
                 </div>
               )}
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {section.items.map((item) => {
                   const Icon = item.icon;
                   const active = isActivePath(item.to);
@@ -178,11 +178,11 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
                         title={collapsed ? item.label : undefined}
                         aria-label={item.label}
                         className={`w-full flex items-center text-left rounded-xl transition-all duration-200 font-medium ${
-                          collapsed ? "lg:justify-center lg:px-2 lg:py-3 gap-3 px-3 py-2.5" : "gap-3 lg:gap-4 px-3 lg:px-4 py-2.5 lg:py-3"
+                          collapsed ? "lg:justify-center lg:px-2 lg:py-2.5 gap-2.5 px-3 py-2" : "gap-2.5 lg:gap-3 px-2.5 lg:px-3 py-2 lg:py-2"
                         } ${active ? "bg-white text-[#1a2847] shadow-lg" : "text-white/90 hover:bg-white/15"} focus:outline-none focus:ring-2 focus:ring-white/30`}
                       >
-                        <Icon size={20} className="flex-shrink-0" />
-                        <span className={`${collapsed ? "lg:hidden" : ""} text-sm lg:text-base text-left`}>{item.label}</span>
+                        <Icon size={18} className="flex-shrink-0" />
+                        <span className={`${collapsed ? "lg:hidden" : ""} text-xs lg:text-sm text-left`}>{item.label}</span>
                       </button>
 
                     </div>
@@ -197,8 +197,8 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
           <button
             onClick={handleLogout}
             title={collapsed ? "Logout" : undefined}
-            className={`mt-3 flex items-center rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition text-sm lg:text-base ${
-              collapsed ? "w-full lg:w-12 lg:h-12 justify-center lg:self-center gap-2 px-3 py-2.5" : "w-full justify-center gap-2 px-3 lg:px-4 py-2.5 lg:py-3"
+            className={`mt-2 flex items-center rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition text-xs lg:text-sm ${
+              collapsed ? "w-full lg:w-10 lg:h-10 justify-center lg:self-center gap-2 px-3 py-2" : "w-full justify-center gap-2 px-2.5 lg:px-3 py-2 lg:py-2"
             }`}
           >
             <LogOut size={16} />
@@ -207,7 +207,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
 
         </div>
 
-        <div className={`border-t border-white/20 pt-3 lg:pt-4 text-[10px] lg:text-xs text-white/70 mt-4 lg:mt-6 ${collapsed ? "lg:hidden" : ""}`}>
+        <div className={`border-t border-white/20 pt-2.5 lg:pt-3 text-[9px] lg:text-[10px] text-white/70 mt-3 lg:mt-4.5 ${collapsed ? "lg:hidden" : ""}`}>
           <p className="font-semibold">Dinas Pemberdayaan Masyarakat dan Kalurahan Kabupaten Sleman</p>
           <p className="mt-1">Sistem Pendukung Keputusan Prioritas Alokasi Dana Desa</p>
         </div>
