@@ -8,8 +8,9 @@ import { useUnsavedChanges } from "../context/UnsavedChangesContext";
 import { MoneyInput, IntegerInput, DecimalInput } from "../components/NumericInput";
 import { formatInteger } from "../utils/numberFormat";
 import { updatePeriodStatus, unlockPraKalkulasiResult } from "../services/periodService";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Download } from "lucide-react";
 import { PageSkeleton } from "../components/SkeletonLoader";
+import { computeVillageSums } from "../utils/praKalkulasi";
 
 import { clearDraft, readDraft, writeDraft } from "../utils/draftStorage";
 
@@ -130,6 +131,7 @@ export default function PraKalkulasi() {
   const [selectedVillage, setSelectedVillage] = useState(null);
   const [systemParamsReady, setSystemParamsReady] = useState(true);
   const [bpkalConfigReady, setBpkalConfigReady] = useState(true);
+  const [bpkalConfig, setBpkalConfig] = useState(null);
   const { alert, confirm } = useDialog();
   const { currentUser } = useAuth();
   const { markDirty, clearDirty } = useUnsavedChanges();
@@ -188,6 +190,7 @@ export default function PraKalkulasi() {
         });
         setSystemParamsReady(!!ctx.hasSystemParameters);
         setBpkalConfigReady(!!ctx.hasBpkalConfig);
+        setBpkalConfig(ctx.bpkalConfig);
         setPaguKab(Number(ctx.period.pagu_total_kab ?? ctx.period.paguKab ?? 0));
         setIsKebijakan(!!ctx.period.is_kebijakan_active);
         if (ctx.period.praKalkulasiDone && ctx.period.praKalkulasiResult?.runId) {
@@ -463,6 +466,465 @@ export default function PraKalkulasi() {
     } finally {
       setRunning(false);
     }
+  };
+
+  const handleExportExcel = () => {
+    if (!result || !result.perVillage || !result.perVillage.length) {
+      alert({ message: "Tidak ada data hasil untuk di-export.", type: "error" });
+      return;
+    }
+    if (!bpkalConfigReady) {
+      alert({ message: "Konfigurasi BPKal belum lengkap untuk periode ini.", type: "error" });
+      return;
+    }
+
+    const periodYear = periods.find(p => p.id === selectedPeriod)?.year ?? selectedPeriod ?? "periode";
+    const filename = `rincian-earmark-add-${periodYear}.xls`;
+
+    // 1. Prepare system params for reconstruction
+    const currentSystemParams = {
+      umk_aktif: Number(systemParams.umk_aktif || 0),
+      rate_bpjs_kes: Number(systemParams.rate_bpjs_kes || 0),
+      rate_bpjs_naker: Number(systemParams.rate_bpjs_naker || 0),
+      siltap_lurah: Number(systemParams.siltap_lurah || 0),
+      siltap_carik: Number(systemParams.siltap_carik || 0),
+      siltap_kasi: Number(systemParams.siltap_kasi || 0),
+      siltap_dukuh: Number(systemParams.siltap_dukuh || 0),
+      default_lurah_count: Number(systemParams.default_lurah_count || 1),
+      default_carik_count: Number(systemParams.default_carik_count || 1),
+      default_kasi_kaur_count: Number(systemParams.default_kasi_kaur_count || 6),
+      bpjs_staff_count: Number(systemParams.bpjs_staff_count || 8),
+    };
+
+    const activeKebijakan = result.totals?.isKebijakan ?? result.totals?.is_kebijakan_active ?? isKebijakan;
+
+    // 2. Reconstruct details and group by kecamatan
+    const grouped = {};
+    result.perVillage.forEach((row) => {
+      let rowDetails = { ...row };
+      if (row.tariffLurah === undefined || row.tariffLurah === null) {
+        const reconstructed = computeVillageSums({
+          village: {
+            id: row.id,
+            nama: row.nama ?? row.name,
+            code: row.code,
+            kecamatan: row.kecamatan,
+            jumlah_dukuh: Number(row.jumlah_dukuh ?? row.siltapCount?.dukuh ?? 0),
+            jumlah_bpkal: Number(row.jumlah_bpkal ?? row.bpkalCount ?? 0),
+          },
+          systemParameters: currentSystemParams,
+          bpkalConfig,
+        });
+        rowDetails = { ...row, ...reconstructed };
+      }
+
+      rowDetails.addKeb = activeKebijakan ? Math.round(rowDetails.siltapPokok1 * 2) : 0;
+      rowDetails.totalPotonganWajib = Number(rowDetails.addSil || 0) + Number(rowDetails.addKes || 0) + Number(rowDetails.addKer || 0) + Number(rowDetails.addBPKal || 0) + rowDetails.addKeb;
+
+      const kec = String(rowDetails.kecamatan || "LAINNYA").toUpperCase().trim();
+      if (!grouped[kec]) grouped[kec] = [];
+      grouped[kec].push(rowDetails);
+    });
+
+    const kecKeys = Object.keys(grouped).sort();
+    kecKeys.forEach((kec) => {
+      grouped[kec].sort((a, b) => (a.nama || a.name || "").localeCompare(b.nama || b.name || ""));
+    });
+
+    const createEmptyAccumulator = () => ({
+      jumlah_dukuh: 0,
+      siltapLurahYr: 0,
+      siltapCarikYr: 0,
+      siltapKasiYr: 0,
+      siltapDukuhYr: 0,
+      addSil: 0,
+      jumlah_bpkal: 0,
+      bpkalKetuaYr: 0,
+      bpkalWakilYr: 0,
+      bpkalSekretarisYr: 0,
+      bpkalBidangYr: 0,
+      bpkalAnggotaYr: 0,
+      addBPKal: 0,
+      addKes: 0,
+      nakerLurah: 0,
+      nakerCarik: 0,
+      nakerKasi: 0,
+      nakerDukuh: 0,
+      nakerPamong: 0,
+      nakerStaff: 0,
+      addKer: 0,
+      addKeb: 0,
+      totalPotonganWajib: 0,
+      addKewenanganKegiatan: 0
+    });
+
+    const accumulateRow = (acc, row) => {
+      const siltapLurahYr = row.lurahCount * row.tariffLurah * 12;
+      const siltapCarikYr = row.carikCount * row.tariffCarik * 12;
+      const siltapKasiYr = row.kasiCount * row.tariffKasi * 12;
+      const siltapDukuhYr = row.jumlah_dukuh * row.tariffDukuh * 12;
+      
+      const bpkalKetuaMth = row.bpkalKetua * row.bpkalTarifKetua;
+      const bpkalWakilMth = row.bpkalWakil * row.bpkalTarifWakil;
+      const bpkalSekretarisMth = row.bpkalSekretaris * row.bpkalTarifSekretaris;
+      const bpkalBidangMth = row.bpkalBidang * row.bpkalTarifBidang;
+      const bpkalAnggotaMth = row.bpkalAnggota * row.bpkalTarifAnggota;
+      
+      const bpkalKetuaYr = bpkalKetuaMth * 12;
+      const bpkalWakilYr = bpkalWakilMth * 12;
+      const bpkalSekretarisYr = bpkalSekretarisMth * 12;
+      const bpkalBidangYr = bpkalBidangMth * 12;
+      const bpkalAnggotaYr = bpkalAnggotaMth * 12;
+      
+      const nakerLurah = siltapLurahYr * row.rateBpjsNaker;
+      const nakerCarik = siltapCarikYr * row.rateBpjsNaker;
+      const nakerKasi = siltapKasiYr * row.rateBpjsNaker;
+      const nakerDukuh = siltapDukuhYr * row.rateBpjsNaker;
+      const nakerPamong = nakerLurah + nakerCarik + nakerKasi + nakerDukuh;
+      const nakerStaff = row.addKerUmkPart;
+      
+      acc.jumlah_dukuh += Number(row.jumlah_dukuh || 0);
+      acc.siltapLurahYr += siltapLurahYr;
+      acc.siltapCarikYr += siltapCarikYr;
+      acc.siltapKasiYr += siltapKasiYr;
+      acc.siltapDukuhYr += siltapDukuhYr;
+      acc.addSil += Number(row.addSil || 0);
+      acc.jumlah_bpkal += Number(row.jumlah_bpkal || 0);
+      acc.bpkalKetuaYr += bpkalKetuaYr;
+      acc.bpkalWakilYr += bpkalWakilYr;
+      acc.bpkalSekretarisYr += bpkalSekretarisYr;
+      acc.bpkalBidangYr += bpkalBidangYr;
+      acc.bpkalAnggotaYr += bpkalAnggotaYr;
+      acc.addBPKal += Number(row.addBPKal || 0);
+      acc.addKes += Number(row.addKes || 0);
+      acc.nakerLurah += nakerLurah;
+      acc.nakerCarik += nakerCarik;
+      acc.nakerKasi += nakerKasi;
+      acc.nakerDukuh += nakerDukuh;
+      acc.nakerPamong += nakerPamong;
+      acc.nakerStaff += nakerStaff;
+      acc.addKer += Number(row.addKer || 0);
+      acc.addKeb += Number(row.addKeb || 0);
+      acc.totalPotonganWajib += Number(row.totalPotonganWajib || 0);
+      acc.addKewenanganKegiatan += Number(row.addKewenanganKegiatan ?? row.alokasiFormula ?? 0);
+    };
+
+    const getExcelRowHtml = (no, name, row, isSubtotal = false, isTotal = false) => {
+      const cellClass = isTotal ? 'bg-total font-bold' : isSubtotal ? 'bg-subtotal font-bold' : '';
+      const numCellClass = `${cellClass} number-cell`;
+      const currCellClass = `${cellClass} currency-cell`;
+      
+      if (isSubtotal || isTotal) {
+        return `
+          <tr>
+            <td class="${cellClass} text-center" style="border: 1px solid black;">${no || ''}</td>
+            <td class="${cellClass} text-left" style="border: 1px solid black;">${name}</td>
+            
+            <td class="${cellClass}" style="border: 1px solid black;">&nbsp;</td>
+            <td class="${cellClass}" style="border: 1px solid black;">&nbsp;</td>
+            <td class="${cellClass}" style="border: 1px solid black;">&nbsp;</td>
+            <td class="${cellClass}" style="border: 1px solid black;">&nbsp;</td>
+            
+            <td class="${numCellClass}" style="border: 1px solid black;">${row.jumlah_dukuh}</td>
+            
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.siltapLurahYr}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.siltapCarikYr}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.siltapKasiYr}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.siltapDukuhYr}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.addSil}</td>
+            
+            <td class="${cellClass}" style="border: 1px solid black;">&nbsp;</td>
+            <td class="${cellClass}" style="border: 1px solid black;">&nbsp;</td>
+            <td class="${cellClass}" style="border: 1px solid black;">&nbsp;</td>
+            <td class="${cellClass}" style="border: 1px solid black;">&nbsp;</td>
+            <td class="${cellClass}" style="border: 1px solid black;">&nbsp;</td>
+            
+            <td class="${numCellClass}" style="border: 1px solid black;">${row.jumlah_bpkal}</td>
+            
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.bpkalKetuaYr}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.bpkalWakilYr}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.bpkalSekretarisYr}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.bpkalBidangYr}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.bpkalAnggotaYr}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.addBPKal}</td>
+            
+            <td class="${cellClass}" style="border: 1px solid black;">&nbsp;</td>
+            <td class="${cellClass}" style="border: 1px solid black;">&nbsp;</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.addKes}</td>
+            
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.nakerLurah}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.nakerCarik}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.nakerKasi}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.nakerDukuh}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.nakerPamong}</td>
+            
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.nakerStaff}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.addKer}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.addKeb}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.totalPotonganWajib}</td>
+            <td class="${currCellClass}" style="border: 1px solid black;">${row.addKewenanganKegiatan}</td>
+          </tr>
+        `;
+      }
+      
+      const siltapLurahYr = row.lurahCount * row.tariffLurah * 12;
+      const siltapCarikYr = row.carikCount * row.tariffCarik * 12;
+      const siltapKasiYr = row.kasiCount * row.tariffKasi * 12;
+      const siltapDukuhYr = row.jumlah_dukuh * row.tariffDukuh * 12;
+      
+      const bpkalKetuaMth = row.bpkalKetua * row.bpkalTarifKetua;
+      const bpkalWakilMth = row.bpkalWakil * row.bpkalTarifWakil;
+      const bpkalSekretarisMth = row.bpkalSekretaris * row.bpkalTarifSekretaris;
+      const bpkalBidangMth = row.bpkalBidang * row.bpkalTarifBidang;
+      const bpkalAnggotaMth = row.bpkalAnggota * row.bpkalTarifAnggota;
+      
+      const bpkalKetuaYr = bpkalKetuaMth * 12;
+      const bpkalWakilYr = bpkalWakilMth * 12;
+      const bpkalSekretarisYr = bpkalSekretarisMth * 12;
+      const bpkalBidangYr = bpkalBidangMth * 12;
+      const bpkalAnggotaYr = bpkalAnggotaMth * 12;
+      
+      const addKes1 = row.umk * row.rateBpjsKes;
+      const addKes8 = addKes1 * row.bpjsStaffCount;
+      
+      const nakerLurah = siltapLurahYr * row.rateBpjsNaker;
+      const nakerCarik = siltapCarikYr * row.rateBpjsNaker;
+      const nakerKasi = siltapKasiYr * row.rateBpjsNaker;
+      const nakerDukuh = siltapDukuhYr * row.rateBpjsNaker;
+      const nakerPamong = nakerLurah + nakerCarik + nakerKasi + nakerDukuh;
+      const nakerStaff = row.addKerUmkPart;
+      
+      return `
+        <tr>
+          <td class="text-center" style="border: 1px solid black;">${no}</td>
+          <td class="text-left" style="border: 1px solid black;">${name}</td>
+          
+          <td class="currency-cell" style="border: 1px solid black;">${row.tariffLurah}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${row.tariffCarik}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${row.tariffKasi}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${row.tariffDukuh}</td>
+          
+          <td class="number-cell" style="border: 1px solid black;">${row.jumlah_dukuh}</td>
+          
+          <td class="currency-cell" style="border: 1px solid black;">${siltapLurahYr}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${siltapCarikYr}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${siltapKasiYr}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${siltapDukuhYr}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${row.addSil}</td>
+          
+          <td class="currency-cell" style="border: 1px solid black;">${bpkalKetuaMth}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${bpkalWakilMth}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${bpkalSekretarisMth}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${bpkalBidangMth}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${bpkalAnggotaMth}</td>
+          
+          <td class="number-cell" style="border: 1px solid black;">${row.jumlah_bpkal}</td>
+          
+          <td class="currency-cell" style="border: 1px solid black;">${bpkalKetuaYr}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${bpkalWakilYr}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${bpkalSekretarisYr}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${bpkalBidangYr}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${bpkalAnggotaYr}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${row.addBPKal}</td>
+          
+          <td class="currency-cell" style="border: 1px solid black;">${addKes1}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${addKes8}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${row.addKes}</td>
+          
+          <td class="currency-cell" style="border: 1px solid black;">${nakerLurah}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${nakerCarik}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${nakerKasi}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${nakerDukuh}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${nakerPamong}</td>
+          
+          <td class="currency-cell" style="border: 1px solid black;">${nakerStaff}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${row.addKer}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${row.addKeb}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${row.totalPotonganWajib}</td>
+          <td class="currency-cell" style="border: 1px solid black;">${row.addKewenanganKegiatan ?? row.alokasiFormula ?? 0}</td>
+        </tr>
+      `;
+    };
+
+    const totalKab = createEmptyAccumulator();
+    let rowsHtml = '';
+    let globalIndex = 1;
+
+    kecKeys.forEach((kec) => {
+      rowsHtml += `
+        <tr class="font-bold">
+          <td style="border: 1px solid black; background-color: #f8fafc;">&nbsp;</td>
+          <td colspan="36" style="border: 1px solid black; background-color: #f8fafc; text-align: left;">${kec}</td>
+        </tr>
+      `;
+
+      const subTotal = createEmptyAccumulator();
+
+      grouped[kec].forEach((village) => {
+        rowsHtml += getExcelRowHtml(globalIndex++, village.nama ?? village.name, village);
+        accumulateRow(subTotal, village);
+        accumulateRow(totalKab, village);
+      });
+
+      rowsHtml += getExcelRowHtml('', `Jumlah ${kec}`, subTotal, true, false);
+    });
+
+    rowsHtml += getExcelRowHtml('', 'TOTAL KABUPATEN', totalKab, false, true);
+
+    const bpjsStaffCount = currentSystemParams.bpjs_staff_count;
+
+    let html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>Alokasi Earmark</x:Name>
+                <x:WorksheetOptions>
+                  <x:DisplayGridlines/>
+                </x:WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        <style>
+          body { font-family: 'Times New Roman', serif; }
+          .title { text-align: center; font-size: 12pt; font-weight: bold; }
+          table { border-collapse: collapse; }
+          th { border: 1px solid black; background-color: #cbd5e1; font-weight: bold; text-align: center; vertical-align: middle; font-size: 9pt; }
+          td { border: 1px solid black; font-size: 9pt; vertical-align: middle; }
+          .number-cell { mso-number-format:"\\#\\,\\#\\#0"; text-align: right; }
+          .currency-cell { mso-number-format:"\\#\\,\\#\\#0\\.00"; text-align: right; }
+          .text-center { text-align: center; }
+          .text-left { text-align: left; }
+          .font-bold { font-weight: bold; }
+          .bg-subtotal { background-color: #f1f5f9; }
+          .bg-total { background-color: #cbd5e1; }
+        </style>
+      </head>
+      <body>
+        <table style="border:none; border-collapse:collapse; width:100%;">
+          <tr style="border:none;"><td colspan="37" style="border:none;" class="title">RINCIAN PERHITUNGAN ALOKASI EARMARK DANA DESA (ADD)</td></tr>
+          <tr style="border:none;"><td colspan="37" style="border:none;" class="title">TAHUN ANGGARAN ${periodYear}</td></tr>
+          <tr style="border:none;"><td colspan="37" style="border:none;">&nbsp;</td></tr>
+        </table>
+
+        <table>
+          <thead>
+            <tr>
+              <th rowspan="2" style="width: 50px;">NO.</th>
+              <th rowspan="2" style="width: 200px;">KAPANEWON/<br/>KALURAHAN</th>
+              <th colspan="4">SILTAP PER BULAN</th>
+              <th rowspan="2" style="width: 100px;">JUMLAH DUKUH</th>
+              <th colspan="5">SILTAP PER TAHUN</th>
+              <th colspan="5">TUNJANGAN BPKAL PER BULAN</th>
+              <th rowspan="2" style="width: 100px;">JUMLAH BPKAL</th>
+              <th colspan="6">TUNJANGAN BPKAL PER TAHUN</th>
+              <th colspan="3">BPJS KES STAF</th>
+              <th colspan="5">BPJS NAKER LURAH & PAMONG KALURAHAN</th>
+              <th rowspan="2" style="width: 150px;">BPJS NAKER STAF</th>
+              <th rowspan="2" style="width: 150px;">BPJS NAKER TOTAL</th>
+              <th rowspan="2" style="width: 180px;">ADD KEBIJAKAN<br/>(THR & KP 13)</th>
+              <th rowspan="2" style="width: 180px;">TOTAL POTONGAN WAJIB</th>
+              <th rowspan="2" style="width: 200px;">ADD KEWENANGAN KEGIATAN</th>
+            </tr>
+            <tr>
+              <th>LURAH</th>
+              <th>CARIK</th>
+              <th>KASI/KAUR</th>
+              <th>DUKUH</th>
+              
+              <th>LURAH</th>
+              <th>CARIK</th>
+              <th>KASI/KAUR</th>
+              <th>DUKUH</th>
+              <th>JUMLAH</th>
+              
+              <th>KETUA</th>
+              <th>WAKIL</th>
+              <th>SEKRETARIS</th>
+              <th>BIDANG</th>
+              <th>ANGGOTA</th>
+              
+              <th>KETUA</th>
+              <th>WAKIL</th>
+              <th>SEKRETARIS</th>
+              <th>BIDANG</th>
+              <th>ANGGOTA</th>
+              <th>JUMLAH</th>
+              
+              <th>1 org/bln</th>
+              <th>${bpjsStaffCount} org/bln</th>
+              <th>${bpjsStaffCount} org/12 bln</th>
+              
+              <th>LURAH</th>
+              <th>CARIK</th>
+              <th>KASI/KAUR</th>
+              <th>DUKUH</th>
+              <th>JUMLAH</th>
+            </tr>
+            <tr style="background-color: #f1f5f9; font-weight: bold; text-align: center;">
+              <td style="border: 1px solid black;" class="text-center">1</td>
+              <td style="border: 1px solid black;" class="text-center">2</td>
+              <td style="border: 1px solid black;" class="text-center">3</td>
+              <td style="border: 1px solid black;" class="text-center">4</td>
+              <td style="border: 1px solid black;" class="text-center">5</td>
+              <td style="border: 1px solid black;" class="text-center">6</td>
+              <td style="border: 1px solid black;" class="text-center">7</td>
+              <td style="border: 1px solid black;" class="text-center">8 = 3 * 12</td>
+              <td style="border: 1px solid black;" class="text-center">9 = 4 * 12</td>
+              <td style="border: 1px solid black;" class="text-center">10 = 5 * 12</td>
+              <td style="border: 1px solid black;" class="text-center">11 = 6 * 7 * 12</td>
+              <td style="border: 1px solid black;" class="text-center">12 = 8+9+10+11</td>
+              <td style="border: 1px solid black;" class="text-center">13</td>
+              <td style="border: 1px solid black;" class="text-center">14</td>
+              <td style="border: 1px solid black;" class="text-center">15</td>
+              <td style="border: 1px solid black;" class="text-center">16</td>
+              <td style="border: 1px solid black;" class="text-center">17</td>
+              <td style="border: 1px solid black;" class="text-center">18</td>
+              <td style="border: 1px solid black;" class="text-center">19 = 13 * 12</td>
+              <td style="border: 1px solid black;" class="text-center">20 = 14 * 12</td>
+              <td style="border: 1px solid black;" class="text-center">21 = 15 * 12</td>
+              <td style="border: 1px solid black;" class="text-center">22 = 16 * 12</td>
+              <td style="border: 1px solid black;" class="text-center">23 = 17 * 12</td>
+              <td style="border: 1px solid black;" class="text-center">24 = 19+20+21+22+23</td>
+              <td style="border: 1px solid black;" class="text-center">25 = UMK * rate</td>
+              <td style="border: 1px solid black;" class="text-center">26 = 25 * ${bpjsStaffCount}</td>
+              <td style="border: 1px solid black;" class="text-center">27 = 26 * 12</td>
+              <td style="border: 1px solid black;" class="text-center">28 = 8 * rate</td>
+              <td style="border: 1px solid black;" class="text-center">29 = 9 * rate</td>
+              <td style="border: 1px solid black;" class="text-center">30 = 10 * rate</td>
+              <td style="border: 1px solid black;" class="text-center">31 = 11 * rate</td>
+              <td style="border: 1px solid black;" class="text-center">32 = 28+29+30+31</td>
+              <td style="border: 1px solid black;" class="text-center">33 = UMK*rate*${bpjsStaffCount}*12</td>
+              <td style="border: 1px solid black;" class="text-center">34 = 32+33</td>
+              <td style="border: 1px solid black;" class="text-center">35 = monthly*2</td>
+              <td style="border: 1px solid black;" class="text-center">36 = 12+24+27+34+35</td>
+              <td style="border: 1px solid black;" class="text-center">37 = Pagu - 36</td>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    alert({ message: "Excel berhasil diunduh!", type: "info" });
   };
 
   if (pageLoading && !periodMeta) {
@@ -746,19 +1208,31 @@ export default function PraKalkulasi() {
       </div>
 
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 flex-wrap">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">Preview Hasil per Kalurahan</h2>
             <p className="text-sm text-slate-500">Tabel diringkas menjadi 10 kolom utama sesuai kebutuhan operasional.</p>
           </div>
-          {result && !periodMeta?.locked && (
-            <button
-              onClick={handleFinalize}
-              className="rounded-xl border border-[#1a2847] bg-[#1a2847] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#14213a]"
-            >
-              Finalisasi & Kirim ke MOORA
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {result && (
+              <button
+                type="button"
+                onClick={handleExportExcel}
+                className="btn-secondary inline-flex items-center gap-1.5"
+              >
+                <Download size={16} /> Export Excel
+              </button>
+            )}
+            {result && !periodMeta?.locked && (
+              <button
+                type="button"
+                onClick={handleFinalize}
+                className="rounded-xl border border-[#1a2847] bg-[#1a2847] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#14213a]"
+              >
+                Finalisasi & Kirim ke MOORA
+              </button>
+            )}
+          </div>
         </div>
 
         {!result ? (
