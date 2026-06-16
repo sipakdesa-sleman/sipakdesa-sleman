@@ -143,16 +143,20 @@ export default function PraKalkulasi() {
     const loadDraftState = () => {
       try {
         const draft = readDraft(DRAFT_KEY);
+        let activePeriod = selectedPeriod;
         if (!selectedPeriod && draft?.selectedPeriod) {
           const exists = periods.some(p => String(p.id) === String(draft.selectedPeriod));
           if (exists) {
             setSelectedPeriod(draft.selectedPeriod);
+            activePeriod = draft.selectedPeriod;
           }
         }
-        if (draft?.systemParams) setSystemParams((current) => ({ ...current, ...draft.systemParams }));
-        if (draft?.paguKab !== undefined) setPaguKab(Number(draft.paguKab) || 0);
-        if (draft?.isKebijakan !== undefined) setIsKebijakan(!!draft.isKebijakan);
-        if (draft?.showParams !== undefined) setShowParams(!!draft.showParams);
+        if (draft && activePeriod && String(draft.selectedPeriod) === String(activePeriod)) {
+          if (draft.systemParams) setSystemParams((current) => ({ ...current, ...draft.systemParams }));
+          if (draft.paguKab !== undefined) setPaguKab(Number(draft.paguKab) || 0);
+          if (draft.isKebijakan !== undefined) setIsKebijakan(!!draft.isKebijakan);
+          if (draft.showParams !== undefined) setShowParams(!!draft.showParams);
+        }
         clearDirty();
       } catch (e) {
         console.error(e);
@@ -210,10 +214,12 @@ export default function PraKalkulasi() {
         }
 
         const draft = readDraft(DRAFT_KEY);
-        if (draft?.systemParams) setSystemParams((current) => ({ ...current, ...draft.systemParams }));
-        if (draft?.paguKab !== undefined) setPaguKab(Number(draft.paguKab) || 0);
-        if (draft?.isKebijakan !== undefined) setIsKebijakan(!!draft.isKebijakan);
-        if (draft?.showParams !== undefined) setShowParams(!!draft.showParams);
+        if (draft && String(draft.selectedPeriod) === String(selectedPeriod)) {
+          if (draft.systemParams) setSystemParams((current) => ({ ...current, ...draft.systemParams }));
+          if (draft.paguKab !== undefined) setPaguKab(Number(draft.paguKab) || 0);
+          if (draft.isKebijakan !== undefined) setIsKebijakan(!!draft.isKebijakan);
+          if (draft.showParams !== undefined) setShowParams(!!draft.showParams);
+        }
         clearDirty();
       } catch (e) {
         console.error(e);
@@ -247,9 +253,9 @@ export default function PraKalkulasi() {
       const aCode = String(a.code ?? "").trim();
       const bCode = String(b.code ?? "").trim();
       if (aCode && bCode) {
-        // Try numeric comparison first
-        const aNum = parseInt(aCode, 10);
-        const bNum = parseInt(bCode, 10);
+        // Try numeric comparison first (extract digits from code e.g. A1 -> 1)
+        const aNum = parseInt(aCode.replace(/\D/g, ""), 10);
+        const bNum = parseInt(bCode.replace(/\D/g, ""), 10);
         if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
         // Fallback to string comparison
         return aCode.localeCompare(bCode, undefined, { numeric: true });
@@ -528,7 +534,20 @@ export default function PraKalkulasi() {
 
     const kecKeys = Object.keys(grouped).sort();
     kecKeys.forEach((kec) => {
-      grouped[kec].sort((a, b) => (a.nama || a.name || "").localeCompare(b.nama || b.name || ""));
+      grouped[kec].sort((a, b) => {
+        const aCode = String(a.code ?? "").trim();
+        const bCode = String(b.code ?? "").trim();
+        if (aCode && bCode) {
+          // Extract the digits to compare numerically (e.g. A1 -> 1)
+          const aNum = parseInt(aCode.replace(/\D/g, ""), 10);
+          const bNum = parseInt(bCode.replace(/\D/g, ""), 10);
+          if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
+          return aCode.localeCompare(bCode, undefined, { numeric: true });
+        }
+        if (aCode) return -1;
+        if (bCode) return 1;
+        return (a.nama || a.name || "").localeCompare(b.nama || b.name || "");
+      });
     });
 
     const createEmptyAccumulator = () => ({
@@ -767,6 +786,12 @@ export default function PraKalkulasi() {
       });
 
       rowsHtml += getExcelRowHtml('', `Jumlah ${kec}`, subTotal, true, false);
+      // Empty separator row between Kapanewon groups
+      rowsHtml += `
+        <tr style="height: 20px; border: none;">
+          <td colspan="37" style="border: none; background-color: transparent;">&nbsp;</td>
+        </tr>
+      `;
     });
 
     rowsHtml += getExcelRowHtml('', 'TOTAL KABUPATEN', totalKab, false, true);
