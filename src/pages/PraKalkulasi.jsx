@@ -249,9 +249,8 @@ export default function PraKalkulasi() {
   const detailRows = useMemo(() => {
     const rows = [...(result?.perVillage ?? [])];
     return rows.sort((a, b) => {
-      // Sort by code first (if both have code)
-      const aCode = String(a.code ?? "").trim();
-      const bCode = String(b.code ?? "").trim();
+      const aCode = String(a.code ?? a.id ?? "").trim();
+      const bCode = String(b.code ?? b.id ?? "").trim();
       if (aCode && bCode) {
         // Try numeric comparison first (extract digits from code e.g. A1 -> 1)
         const aNum = parseInt(aCode.replace(/\D/g, ""), 10);
@@ -533,8 +532,8 @@ export default function PraKalkulasi() {
     });
 
     const compareByCode = (a, b) => {
-      const aCode = String(a.code ?? "").trim();
-      const bCode = String(b.code ?? "").trim();
+      const aCode = String(a.code ?? a.id ?? "").trim();
+      const bCode = String(b.code ?? b.id ?? "").trim();
       if (aCode && bCode) {
         // Try numeric comparison first (extract digits from code e.g. A1 -> 1)
         const aNum = parseInt(aCode.replace(/\D/g, ""), 10);

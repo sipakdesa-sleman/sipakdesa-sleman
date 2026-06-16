@@ -255,6 +255,7 @@ export async function getPraKalkulasiRun(periodId, runId) {
 
     return {
       id: row.desa_id,
+      code: row.desa_id,
       nama: row.desa_name,
       kecamatan: row.kecamatan,
       siltapCount: row.siltap_count,
