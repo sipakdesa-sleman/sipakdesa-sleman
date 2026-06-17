@@ -579,7 +579,7 @@ Catatan: Akun login di Supabase Auth akan tetap ada karena batasan client-side. 
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     required
-                    placeholder="Min. 6 karakter"
+                    placeholder="Min. 8 karakter + kombinasi"
                     className="block w-full border border-gray-300 rounded px-3 py-2 pr-10 text-sm focus:ring-blue-500 focus:border-blue-500"
                   />
                   <button
@@ -590,6 +590,9 @@ Catatan: Akun login di Supabase Auth akan tetap ada karena batasan client-side. 
                     {showRegPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
+                <p className="mt-1 text-[11px] text-gray-500 leading-tight">
+                  Kata sandi minimal 8 karakter dengan kombinasi huruf besar, kecil, angka, dan simbol (bukan kata sandi lemah).
+                </p>
               </div>
 
               <div>
