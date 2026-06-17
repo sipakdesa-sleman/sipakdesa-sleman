@@ -43,6 +43,42 @@ export default function AdminLayout() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  useEffect(() => {
+    if (!currentUser) return;
+
+    let timeoutId;
+
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(handleAutoLogout, 15 * 60 * 1000); // 15 Menit
+    };
+
+    const handleAutoLogout = async () => {
+      console.warn("Sesi berakhir karena tidak ada aktivitas selama 15 menit.");
+      try {
+        await logout();
+        navigate("/login", { replace: true });
+      } catch (err) {
+        console.error("Auto logout error:", err);
+      }
+    };
+
+    const events = ["mousedown", "mousemove", "keypress", "scroll", "touchstart"];
+
+    events.forEach((event) => {
+      window.addEventListener(event, resetTimer);
+    });
+
+    resetTimer();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      events.forEach((event) => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [currentUser, logout, navigate]);
+
   async function handleLogout() {
     try {
       await logout();

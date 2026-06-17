@@ -27,6 +27,7 @@ import {
   toggleSuspendUser, 
   deleteUser 
 } from "../services/userService";
+import { sanitizeInputText } from "../utils/sanitize";
 
 
 export default function Users() {
@@ -107,15 +108,32 @@ export default function Users() {
       alert({ message: "Semua kolom registrasi wajib diisi.", type: "error" });
       return;
     }
-    if (regPassword.length < 6) {
-      alert({ message: "Password awal minimal 6 karakter.", type: "error" });
+    // Validasi Kekuatan Password & Blacklist (SE Halaman 3 Poin b, c, d)
+    if (regPassword.length < 8) {
+      alert({ message: "Password minimal harus 8 karakter.", type: "error" });
+      return;
+    }
+    const hasUpperCase = /[A-Z]/.test(regPassword);
+    const hasLowerCase = /[a-z]/.test(regPassword);
+    const hasNumbers = /\d/.test(regPassword);
+    const hasNonalphas = /[^a-zA-Z\d]/.test(regPassword);
+    if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasNonalphas) {
+      alert({ message: "Password harus kombinasi dari huruf besar, huruf kecil, angka, dan simbol.", type: "error" });
+      return;
+    }
+    const blacklist = ["admin", "password", "123", "qwerty", "sleman", "dpmk", "sipakdesa"];
+    const lowercasePassword = regPassword.toLowerCase();
+    const isBlacklisted = blacklist.some(term => lowercasePassword.includes(term));
+    if (isBlacklisted) {
+      alert({ message: "Password terlalu lemah (mengandung kata terlarang seperti admin/password/123/qwerty/nama instansi).", type: "error" });
       return;
     }
 
     setRegLoading(true);
     try {
+      const sanitizedName = sanitizeInputText(regNama);
       await registerUser({
-        name: regNama,
+        name: sanitizedName,
         email: regEmail,
         password: regPassword,
         role: regRole,
@@ -189,8 +207,9 @@ export default function Users() {
     }
     setEditLoading(true);
     try {
+      const sanitizedName = sanitizeInputText(editNama);
       const updateData = {
-        name: editNama,
+        name: sanitizedName,
       };
       
       // Jangan ijinkan merubah role akun sendiri demi keamanan

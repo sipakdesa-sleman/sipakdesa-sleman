@@ -6,6 +6,7 @@ import { getAllParameters, getParameterByCode, upsertParameter } from "../servic
 import { getLatestAhpMeta, getAllAhpRuns } from "../services/ahpService";
 import { getAllPeriods } from "../services/periodService";
 import { PageSkeleton } from "../components/SkeletonLoader";
+import { sanitizeInputText } from "../utils/sanitize";
 
 const emptyCriteriaForm = { code: "", name: "", type: "", nature: "kuantitatif", active: true };
 
@@ -154,7 +155,7 @@ export default function KriteriaBobot() {
     try {
       const payload = {
         code: criteriaForm.code,
-        name: criteriaForm.name,
+        name: sanitizeInputText(criteriaForm.name),
         type: criteriaForm.type,
         nature: criteriaForm.nature ?? "kuantitatif",
         active: criteriaForm.active,
@@ -223,7 +224,7 @@ export default function KriteriaBobot() {
       const isQualitative = currentCriteriaObj?.nature === "kualitatif";
 
       const normalized = parameterRows.map((row) => ({
-        label: row.label,
+        label: sanitizeInputText(row.label),
         min: isQualitative || row.min === "" ? null : Number(row.min),
         max: isQualitative || row.max === "" ? null : Number(row.max),
         score: Number(row.score),

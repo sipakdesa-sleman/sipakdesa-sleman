@@ -12,6 +12,7 @@ import { usePeriod } from "../context/PeriodContext";
 import { IntegerInput, DecimalInput } from "../components/NumericInput";
 import { formatDecimalDisplay, formatInteger } from "../utils/numberFormat";
 import { PageSkeleton } from "../components/SkeletonLoader";
+import { sanitizeInputText } from "../utils/sanitize";
 
 function compareByCodeThenName(a, b) {
   const aCode = String(a.code ?? "").trim();
@@ -376,8 +377,8 @@ export default function DataDesa() {
     }
     try {
       const payload = {
-        name: formNama,
-        kecamatan: formKecamatan,
+        name: sanitizeInputText(formNama),
+        kecamatan: sanitizeInputText(formKecamatan),
         jumlah_bpkal: formJumlahBpkal === "" ? null : Number(formJumlahBpkal),
       };
 

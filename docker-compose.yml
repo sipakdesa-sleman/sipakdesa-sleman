@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  sipakdesa-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Meloloskan variabel lingkungan Supabase dari file .env host pada waktu build
+        - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+        - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    container_name: sipakdesa_frontend
+    ports:
+      - "8080:80"
+    restart: always
+    environment:
+      # Variabel lingkungan untuk referensi runtime jika diperlukan
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    volumes:
+      # Bind mounting file konfigurasi Nginx agar perubahan setelan tidak memerlukan build ulang kontainer
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      
+      # =========================================================================
+      # BIND MOUNTING PERSISTEN LOG (Mandat Kepatuhan SE Halaman 7 Poin 11.b)
+      # =========================================================================
+      # Memetakan log akses dan kesalahan web server ke direktori host luar agar 
+      # riwayat aktivitas tetap tersimpan meskipun kontainer dihancurkan / di-recreate.
+      - ./logs/nginx:/var/log/nginx
