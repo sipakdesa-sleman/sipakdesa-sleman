@@ -5,7 +5,7 @@ import { attachNominalAllocation, calculateMOORA, getScore } from "../utils/moor
 import { getCriteriaTypes } from "../services/mooraService";
 import { getAllCriteria } from "../services/criteriaService";
 import { getAllParameters } from "../services/parametersService";
-import { formatInteger, formatDecimalDisplay } from "../utils/numberFormat";
+import { formatDecimalDisplay } from "../utils/numberFormat";
 import { getAHPCriteriaWeights, getLatestAhpMeta, getAhpRuns, getAhpRunById } from "../services/ahpService";
 import { getAllDesa, getVillagesWithPeriodData } from "../services/desaService";
 import { saveMooraResults } from "../services/resultService";
@@ -50,8 +50,7 @@ function compareByCodeThenName(a, b) {
 export default function PerhitunganMOORA() {
   const { selectedPeriod, setSelectedPeriod, periods, refreshPeriods } = usePeriod();
   const [criteria, setCriteria] = useState([]);
-  const geografisCriteria = useMemo(() => criteria.find(c => c.code === 'C5' || c.name.toLowerCase().includes('geografis') || c.name.toLowerCase().includes('kesulitan')), [criteria]);
-  const geografisCode = useMemo(() => geografisCriteria ? geografisCriteria.code : 'C5', [geografisCriteria]);
+
   const [weights, setWeights] = useState({});
   const [ahpId, setAhpId] = useState(null);
   const [ahpMeta, setAhpMeta] = useState(null);
@@ -828,15 +827,8 @@ export default function PerhitunganMOORA() {
                                 </option>
                               ))}
                             </select>
-                          ) : c.code === geografisCode ? (
-                            <DecimalInput
-                              className="w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-2 text-center text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-                              placeholder={`Nilai ${c.code}`}
-                              value={value}
-                              onChange={val => handleChange(alt.id, c.code, val)}
-                            />
                           ) : (
-                            <IntegerInput
+                            <DecimalInput
                               className="w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-2 text-center text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
                               placeholder={`Nilai ${c.code}`}
                               value={value}
@@ -1066,7 +1058,7 @@ export default function PerhitunganMOORA() {
                                 ? "-"
                                 : (isQualitative
                                     ? String(rawVal)
-                                    : (code === geografisCode ? formatDecimalDisplay(rawVal) : formatInteger(rawVal)));
+                                    : formatDecimalDisplay(rawVal));
 
                               return (
                                 <td key={code} className="p-3 border-b border-gray-100 text-center text-gray-700">

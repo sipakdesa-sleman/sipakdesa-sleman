@@ -269,10 +269,8 @@ export default function DataDesa() {
                   if (val !== undefined && val !== null && val !== "") {
                     if (c.nature === "kualitatif") {
                       displayVal = val;
-                    } else if (c.code === geografisCode) {
-                      displayVal = formatDecimalDisplay(val);
                     } else {
-                      displayVal = formatInteger(val);
+                      displayVal = formatDecimalDisplay(val);
                     }
                   }
                   return `<td>${displayVal}</td>`;
@@ -667,10 +665,8 @@ export default function DataDesa() {
                     if (val !== undefined && val !== null && val !== "") {
                       if (c.nature === "kualitatif") {
                         displayVal = val;
-                      } else if (c.code === geografisCode) {
-                        displayVal = formatDecimalDisplay(val);
                       } else {
-                        displayVal = formatInteger(val);
+                        displayVal = formatDecimalDisplay(val);
                       }
                     }
                     return (
@@ -790,19 +786,8 @@ export default function DataDesa() {
                           </option>
                         ))}
                       </select>
-                    ) : c.code === geografisCode ? (
-                      <DecimalInput
-                        value={formCriteriaValues[c.code] ?? ""}
-                        onChange={(val) =>
-                          setFormCriteriaValues((prev) => ({
-                            ...prev,
-                            [c.code]: val,
-                          }))
-                        }
-                        className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                      />
                     ) : (
-                      <IntegerInput
+                      <DecimalInput
                         value={formCriteriaValues[c.code] ?? ""}
                         onChange={(val) =>
                           setFormCriteriaValues((prev) => ({
