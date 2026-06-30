@@ -2,27 +2,25 @@ import { supabase } from "../supabase/supabaseConfig";
 
 function clearSessionDraftsForPeriod(periodId) {
   const pId = String(periodId);
-  const draftKeys = [
-    "sipakdesa:draft:pra-kalkulasi",
-    "sipakdesa:draft:moora",
-    "sipakdesa:draft:ahp"
-  ];
-  draftKeys.forEach(key => {
+  if (typeof window === "undefined" || !window.sessionStorage) return;
+
+  const keysToClear = [];
+  for (let i = 0; i < window.sessionStorage.length; i++) {
+    const key = window.sessionStorage.key(i);
+    if (key && (key.includes(`:${pId}`) || key.includes(pId))) {
+      keysToClear.push(key);
+    }
+  }
+
+  keysToClear.forEach((key) => {
     try {
-      if (typeof window !== "undefined" && window.sessionStorage) {
-        const raw = window.sessionStorage.getItem(key);
-        if (raw) {
-          const draft = JSON.parse(raw);
-          if (draft && String(draft.selectedPeriod) === String(pId)) {
-            window.sessionStorage.removeItem(key);
-          }
-        }
-      }
+      window.sessionStorage.removeItem(key);
     } catch (e) {
       console.warn(`Gagal membersihkan draf untuk kunci ${key}:`, e);
     }
   });
 }
+
 
 async function deletePeriodRelatedData(periodId) {
   const pId = String(periodId);

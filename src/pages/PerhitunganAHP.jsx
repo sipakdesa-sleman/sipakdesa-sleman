@@ -18,10 +18,10 @@ import { clearDraft, readDraft, writeDraft } from "../utils/draftStorage";
 import { usePeriod } from "../context/PeriodContext";
 import { PageSkeleton } from "../components/SkeletonLoader";
 
-const DRAFT_KEY = "sipakdesa:draft:ahp";
+const getDraftKey = (periodId) => periodId ? `sipakdesa:draft:ahp:${periodId}` : null;
 
 export default function PerhitunganAHP() {
-  const { selectedPeriod, setSelectedPeriod, periods } = usePeriod();
+  const { selectedPeriod, setSelectedPeriod } = usePeriod();
   const [criteria, setCriteria] = useState([]);
   const [matrix, setMatrix] = useState([]);
   const [result, setResult] = useState(null);
@@ -39,15 +39,13 @@ export default function PerhitunganAHP() {
         setCriteria(data);
         setMatrix(createInitialMatrix(data.length));
 
-        const draft = readDraft(DRAFT_KEY);
-        if (!selectedPeriod && draft?.selectedPeriod) {
-          const exists = periods.some(p => String(p.id) === String(draft.selectedPeriod));
-          if (exists) {
-            setSelectedPeriod(draft.selectedPeriod);
+        if (selectedPeriod) {
+          const draft = readDraft(getDraftKey(selectedPeriod));
+          if (draft && String(draft.selectedPeriod) === String(selectedPeriod)) {
+            if (draft.matrix?.length === data.length) {
+              setMatrix(draft.matrix);
+            }
           }
-        }
-        if (draft?.matrix?.length === data.length) {
-          setMatrix(draft.matrix);
         }
 
         setDraftReady(true);
@@ -58,11 +56,11 @@ export default function PerhitunganAHP() {
       setLoading(false);
     };
     loadData();
-  }, [clearDirty, selectedPeriod, setSelectedPeriod, periods]);
+  }, [clearDirty, selectedPeriod]);
 
   useEffect(() => {
-    if (loading || !draftReady) return;
-    writeDraft(DRAFT_KEY, { selectedPeriod, matrix });
+    if (loading || !draftReady || !selectedPeriod) return;
+    writeDraft(getDraftKey(selectedPeriod), { selectedPeriod, matrix });
   }, [loading, draftReady, selectedPeriod, matrix]);
 
 
@@ -169,7 +167,7 @@ export default function PerhitunganAHP() {
 
       alert({ message: "✓ Bobot AHP berhasil disimpan untuk periode " + activePeriod + ".\n\nBobot ini akan digunakan untuk perhitungan MOORA dan ditampilkan di halaman Kriteria & Bobot.", type: "info" });
       clearDirty();
-      clearDraft(DRAFT_KEY);
+      clearDraft(getDraftKey(selectedPeriod));
     } catch (err) {
       console.error("Gagal menyimpan AHP", err);
       alert({ message: "Gagal menyimpan bobot AHP: " + (err?.message ?? err), type: "error" });

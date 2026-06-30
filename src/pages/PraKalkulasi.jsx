@@ -14,7 +14,7 @@ import { computeVillageSums } from "../utils/praKalkulasi";
 
 import { clearDraft, readDraft, writeDraft } from "../utils/draftStorage";
 
-const DRAFT_KEY = "sipakdesa:draft:pra-kalkulasi";
+const getDraftKey = (periodId) => periodId ? `sipakdesa:draft:pra-kalkulasi:${periodId}` : null;
 
 const rupiah = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -142,16 +142,10 @@ export default function PraKalkulasi() {
   useEffect(() => {
     const loadDraftState = () => {
       try {
-        const draft = readDraft(DRAFT_KEY);
-        let activePeriod = selectedPeriod;
-        if (!selectedPeriod && draft?.selectedPeriod) {
-          const exists = periods.some(p => String(p.id) === String(draft.selectedPeriod));
-          if (exists) {
-            setSelectedPeriod(draft.selectedPeriod);
-            activePeriod = draft.selectedPeriod;
-          }
-        }
-        if (draft && activePeriod && String(draft.selectedPeriod) === String(activePeriod)) {
+        const activePeriod = selectedPeriod || localStorage.getItem("sipakdesa:selectedPeriod");
+        if (!activePeriod) return;
+        const draft = readDraft(getDraftKey(activePeriod));
+        if (draft && String(draft.selectedPeriod) === String(activePeriod)) {
           if (draft.systemParams) setSystemParams((current) => ({ ...current, ...draft.systemParams }));
           if (draft.paguKab !== undefined) setPaguKab(Number(draft.paguKab) || 0);
           if (draft.isKebijakan !== undefined) setIsKebijakan(!!draft.isKebijakan);
@@ -163,7 +157,7 @@ export default function PraKalkulasi() {
       }
     };
     loadDraftState();
-  }, [clearDirty, selectedPeriod, setSelectedPeriod, periods]);
+  }, [clearDirty, selectedPeriod]);
 
   useEffect(() => {
     if (!selectedPeriod) {
@@ -213,7 +207,7 @@ export default function PraKalkulasi() {
           setResult(null);
         }
 
-        const draft = readDraft(DRAFT_KEY);
+        const draft = readDraft(getDraftKey(selectedPeriod));
         if (draft && String(draft.selectedPeriod) === String(selectedPeriod)) {
           if (draft.systemParams) setSystemParams((current) => ({ ...current, ...draft.systemParams }));
           if (draft.paguKab !== undefined) setPaguKab(Number(draft.paguKab) || 0);
@@ -236,8 +230,8 @@ export default function PraKalkulasi() {
   }, [selectedPeriod, alert, clearDirty]);
 
   useEffect(() => {
-    if (pageLoading) return;
-    writeDraft(DRAFT_KEY, {
+    if (pageLoading || !selectedPeriod) return;
+    writeDraft(getDraftKey(selectedPeriod), {
       selectedPeriod,
       systemParams,
       paguKab,
@@ -427,7 +421,7 @@ export default function PraKalkulasi() {
           : null
       );
       clearDirty();
-      clearDraft(DRAFT_KEY);
+      clearDraft(getDraftKey(selectedPeriod));
       if (refreshPeriods) await refreshPeriods();
     } catch (e) {
       console.error(e);

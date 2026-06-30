@@ -21,7 +21,7 @@ import { usePeriod } from "../context/PeriodContext";
 import { PageSkeleton } from "../components/SkeletonLoader";
 import { IntegerInput, DecimalInput } from "../components/NumericInput";
 
-const DRAFT_KEY = "sipakdesa:draft:moora";
+const getDraftKey = (periodId) => periodId ? `sipakdesa:draft:moora:${periodId}` : null;
 
 
 
@@ -101,13 +101,6 @@ export default function PerhitunganMOORA() {
         }))
       );
 
-      const draft = readDraft(DRAFT_KEY);
-      if (Array.isArray(draft?.selectedDesaIds)) setSelectedDesaIds(draft.selectedDesaIds);
-      if (Array.isArray(draft?.alternatives)) setAlternatives(draft.alternatives);
-      if (draft?.showDropdown !== undefined) setShowDropdown(!!draft.showDropdown);
-      if (draft?.searchDesa !== undefined) setSearchDesa(String(draft.searchDesa ?? ""));
-      if (draft?.showDetail !== undefined) setShowDetail(!!draft.showDetail);
-
       setDraftReady(true);
       clearDirty();
     } catch (err) {
@@ -126,8 +119,8 @@ export default function PerhitunganMOORA() {
   }, [loadData]);
 
   useEffect(() => {
-    if (!draftReady) return;
-    writeDraft(DRAFT_KEY, {
+    if (!draftReady || !selectedPeriod) return;
+    writeDraft(getDraftKey(selectedPeriod), {
       selectedPeriod,
       selectedDesaIds,
       alternatives,
@@ -209,10 +202,20 @@ export default function PerhitunganMOORA() {
   }, [alert, criteria]);
 
   useEffect(() => {
-    if (!selectedPeriod) return;
-    // auto-load when period changes
-    loadRawFromDesa(selectedPeriod, false).catch(() => {});
-  }, [selectedPeriod, loadRawFromDesa]);
+    if (!selectedPeriod || !draftReady) return;
+    
+    const draft = readDraft(getDraftKey(selectedPeriod));
+    if (draft && String(draft.selectedPeriod) === String(selectedPeriod)) {
+      if (Array.isArray(draft.selectedDesaIds)) setSelectedDesaIds(draft.selectedDesaIds);
+      if (Array.isArray(draft.alternatives)) setAlternatives(draft.alternatives);
+      if (draft.showDropdown !== undefined) setShowDropdown(!!draft.showDropdown);
+      if (draft.searchDesa !== undefined) setSearchDesa(String(draft.searchDesa ?? ""));
+      if (draft.showDetail !== undefined) setShowDetail(!!draft.showDetail);
+    } else {
+      // auto-load when period changes and no draft exists
+      loadRawFromDesa(selectedPeriod, false).catch(() => {});
+    }
+  }, [selectedPeriod, draftReady, loadRawFromDesa]);
 
   useEffect(() => {
     const loadWeights = async () => {
@@ -527,7 +530,7 @@ export default function PerhitunganMOORA() {
       await setActivePeriod(periodId);
 
       clearDirty();
-      clearDraft(DRAFT_KEY);
+      clearDraft(getDraftKey(selectedPeriod));
       
       // Refresh global periods to reflect active status change
       await refreshPeriods();
