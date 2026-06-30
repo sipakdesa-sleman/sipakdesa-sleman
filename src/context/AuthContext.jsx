@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { supabase } from "../supabase/supabaseConfig";
 
 export const USER_ROLES = {
@@ -17,8 +17,10 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const lastLoginSuspended = useRef(false);
 
   async function login(email, password) {
+    lastLoginSuspended.current = false;
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -26,6 +28,11 @@ export function AuthProvider({ children }) {
     if (error) throw error;
     
     // Periksa status penangguhan (suspend) secara instan saat login
+    if (lastLoginSuspended.current) {
+      lastLoginSuspended.current = false;
+      throw new Error("suspended");
+    }
+    
     try {
       const { data: profile, error: profileError } = await supabase
         .from("sipakdesa_users")
@@ -115,6 +122,7 @@ export function AuthProvider({ children }) {
         }
 
         if (profile && profile.active === false) {
+          lastLoginSuspended.current = true;
           await supabase.auth.signOut();
           setCurrentUser(null);
           setLoading(false);
