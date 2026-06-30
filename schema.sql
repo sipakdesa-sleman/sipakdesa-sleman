@@ -264,3 +264,19 @@ FOR EACH ROW EXECUTE FUNCTION public.check_period_lock();
 CREATE TRIGGER trg_prevent_changes_on_locked_period_system
 BEFORE INSERT OR UPDATE OR DELETE ON public.sipakdesa_system_parameters
 FOR EACH ROW EXECUTE FUNCTION public.check_period_lock();
+
+-- ========================================================================
+-- Trigger logic to delete Supabase Auth user when profile is deleted
+-- ========================================================================
+CREATE OR REPLACE FUNCTION public.handle_delete_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM auth.users WHERE id = OLD.id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE TRIGGER trg_delete_supabase_auth_user
+AFTER DELETE ON public.sipakdesa_users
+FOR EACH ROW EXECUTE FUNCTION public.handle_delete_user();
+
