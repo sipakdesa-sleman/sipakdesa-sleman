@@ -240,10 +240,10 @@ export default function Users() {
 
     const ok = await confirm({
       title: "Hapus Pengguna",
-      message: `Apakah Anda yakin ingin menghapus data profil ${user.name || user.email} dari database?
+      message: `Apakah Anda yakin ingin menghapus pengguna ${user.name || user.email} secara permanen dari sistem?
 
-Catatan: Akun login di Supabase Auth akan tetap ada karena batasan client-side. Anda harus menonaktifkannya (Suspend) jika ingin memblokir akses login secara instan.`,
-      confirmLabel: "Hapus Profil",
+Tindakan ini juga akan menghapus akun login/autentikasi mereka di Supabase Auth secara otomatis.`,
+      confirmLabel: "Hapus Pengguna",
       cancelLabel: "Batal"
     });
 
