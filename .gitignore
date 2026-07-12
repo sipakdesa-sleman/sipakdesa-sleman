@@ -40,3 +40,9 @@ env
 ENV
 __pycache__/
 *.pyc
+
+# Excel files and data folder
+src/data/
+*.xlsx
+*.xls
+
