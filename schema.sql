@@ -252,7 +252,13 @@ WHERE id = COALESCE(NEW.period_id, OLD.period_id) AND locked = TRUE
 ) THEN
 RAISE EXCEPTION 'Operasi dibatalkan: Periode anggaran tahun ini telah dikunci dan tidak dapat diubah!';
 END IF;
-RETURN NEW;
+
+-- Kunci Perbaikan Bug Hapus
+IF (TG_OP = 'DELETE') THEN
+    RETURN OLD;
+ELSE
+    RETURN NEW;
+END IF;
 END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_prevent_changes_on_locked_period_raw
