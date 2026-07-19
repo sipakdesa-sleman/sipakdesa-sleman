@@ -1267,7 +1267,8 @@ export default function PraKalkulasi() {
               <button
                 type="button"
                 onClick={handleFinalize}
-                className="btn-action rounded-xl px-4 py-2 text-sm font-semibold transition"
+                disabled={Number(result.addKew ?? 0) <= 0}
+                className="btn-action rounded-xl px-4 py-2 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Finalisasi & Kirim ke MOORA
               </button>
