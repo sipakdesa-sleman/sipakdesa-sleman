@@ -49,6 +49,16 @@ function compareByCodeThenName(a, b) {
 
 export default function PerhitunganMOORA() {
   const { selectedPeriod, setSelectedPeriod, periods, refreshPeriods } = usePeriod();
+
+  const selectedPeriodData = useMemo(() => {
+    return periods.find((p) => String(p.id ?? p.year) === String(selectedPeriod));
+  }, [periods, selectedPeriod]);
+
+  const allocationPool = useMemo(() => {
+    if (!selectedPeriodData) return 0;
+    return Number(selectedPeriodData.praKalkulasiResult?.addKew ?? selectedPeriodData.praKalkulasiResult?.summary?.sisaAlokasi ?? 0);
+  }, [selectedPeriodData]);
+
   const [criteria, setCriteria] = useState([]);
 
   const [weights, setWeights] = useState({});
@@ -480,6 +490,15 @@ export default function PerhitunganMOORA() {
       alert({ message: "❌ Pra-Kalkulasi belum dijalankan untuk periode ini. Jalankan Pra-Kalkulasi terlebih dahulu sebelum menghitung MOORA.", type: "error" });
       return;
     }
+
+    // Validasi: sisa alokasi tidak boleh negatif atau 0
+    if (allocationPool <= 0) {
+      alert({
+        message: `❌ Perhitungan Dibatalkan: Sisa alokasi dana (ADD Kewenangan Kegiatan) untuk periode ini bernilai Rp ${new Intl.NumberFormat("id-ID").format(allocationPool)} atau kurang.\n\nSilakan buka kembali kunci earmark di menu Alokasi Earmark dan tingkatkan nominal Pagu Kabupaten terlebih dahulu.`,
+        type: "error",
+      });
+      return;
+    }
     
     if (!hasWeights) {
       alert({ message: "Belum ada bobot AHP aktif untuk periode ini. Buat/simpan bobot AHP periode tersebut dahulu.", type: "error" });
@@ -577,6 +596,21 @@ export default function PerhitunganMOORA() {
           </p>
         </div>
       </div>
+
+      {selectedPeriodData?.praKalkulasiDone && allocationPool <= 0 && (
+        <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-950 shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0 text-red-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <p className="text-sm font-semibold text-red-900">Sisa Alokasi Defisit / Kurang (Rp 0 atau kurang)</p>
+            <p className="text-xs text-red-700 leading-relaxed font-normal">
+              Sisa alokasi dana desa (ADD Kewenangan Kegiatan) untuk periode ini bernilai Rp {new Intl.NumberFormat("id-ID").format(allocationPool)}. 
+              Perhitungan MOORA tidak dapat dijalankan. Silakan masuk ke menu <strong>Alokasi Earmark</strong> untuk menyesuaikan Pagu Total Kabupaten terlebih dahulu.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="panel bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">

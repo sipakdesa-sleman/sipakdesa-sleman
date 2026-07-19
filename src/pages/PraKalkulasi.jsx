@@ -384,6 +384,12 @@ export default function PraKalkulasi() {
       });
     }
     if (!result) return alert({ message: "Jalankan pra-kalkulasi dulu sebelum finalisasi.", type: "error" });
+    if (Number(result.addKew ?? 0) <= 0) {
+      return alert({
+        message: "❌ Gagal Finalisasi: Sisa alokasi dana (ADD Kewenangan Kegiatan) bernilai Rp 0 atau negatif. Pagu Total Kabupaten (BKAD) harus lebih besar dari Total Potongan Wajib.",
+        type: "error",
+      });
+    }
     const ok = await confirm({
       title: "Finalisasi & Kirim Pagu ke MOORA",
       message: `Simpan sisa alokasi sebesar Rp ${formatRp(result.addKew)} dan finalisasi alokasi earmark ini untuk dikirim ke MOORA?`,
@@ -1017,7 +1023,12 @@ export default function PraKalkulasi() {
         <StatCard title="Total Dukuh" value={formatInteger(summary.totalDukuh)} subtitle="Akumulasi dukuh seluruh alternatif" />
         <StatCard title="Total BPKal" value={formatRp(summary.addBPKal)} subtitle="Potongan wajib khusus BPKal" />
         <StatCard title="Total Potongan Wajib" value={formatRp(summary.totalPotonganWajib)} subtitle="Siltap + BPJS + Kebijakan + BPKal" />
-        <StatCard title="Sisa Alokasi" value={formatRp(summary.sisaAlokasi)} subtitle="ADDKew yang dibawa ke MOORA" />
+        <StatCard
+          title="Sisa Alokasi"
+          value={formatRp(summary.sisaAlokasi)}
+          subtitle={summary.sisaAlokasi <= 0 ? "⚠️ Pagu BKAD Defisit/Kurang!" : "ADDKew yang dibawa ke MOORA"}
+          isDanger={summary.sisaAlokasi <= 0}
+        />
       </div>
 
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
