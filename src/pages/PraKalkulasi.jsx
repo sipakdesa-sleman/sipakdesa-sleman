@@ -322,6 +322,15 @@ export default function PraKalkulasi() {
         ...systemParams,
         is_kebijakan_active: isKebijakan,
       });
+
+      if (Number(response.result?.addKew ?? 0) <= 0) {
+        setResult(null);
+        return alert({
+          message: `❌ Gagal Eksekusi: Pagu Total Kabupaten (Rp ${formatRp(paguKab)}) kurang dari Total Potongan Wajib (Rp ${formatRp(response.result?.totals?.totalPotonganWajib ?? 0)}). Kurang sebesar Rp ${formatRp(Math.abs(response.result?.addKew ?? 0))}.\n\nSilakan sesuaikan Pagu Kabupaten terlebih dahulu.`,
+          type: "error",
+        });
+      }
+
       setResult(response.result);
       markDirty();
       alert({ message: "Pra-kalkulasi selesai. Preview hasil sudah diperbarui.", type: "info" });
@@ -1267,8 +1276,7 @@ export default function PraKalkulasi() {
               <button
                 type="button"
                 onClick={handleFinalize}
-                disabled={Number(result.addKew ?? 0) <= 0}
-                className="btn-action rounded-xl px-4 py-2 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-action rounded-xl px-4 py-2 text-sm font-semibold transition"
               >
                 Finalisasi & Kirim ke MOORA
               </button>
