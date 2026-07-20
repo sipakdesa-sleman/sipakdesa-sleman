@@ -1433,11 +1433,10 @@ export default function DataDesa() {
                   </div>
                 )}
               </div>
-
               {/* Step 2: Mapping Columns */}
               {csvRows.length > 0 && (
                 <div className="border border-slate-200 rounded-xl p-4 space-y-4">
-                  <div className="flex justify-between items-center flex-wrap gap-3 border-b border-slate-150 pb-3">
+                  <div className="flex justify-between items-center flex-wrap gap-3 border-b border-slate-200 pb-3">
                     <label className="block text-sm font-bold text-slate-800">2. Sesuaikan Baris Header & Pemetaan Kolom</label>
                     <div className="flex items-center gap-2 text-xs">
                       <span className="text-slate-600 font-medium">Baris Header:</span>
@@ -1462,7 +1461,7 @@ export default function DataDesa() {
 
                   <div className="space-y-4">
                     {/* Section: Kolom Acuan Nama (Wajib) */}
-                    <div className="bg-blue-50/50 border border-blue-150 rounded-xl p-3.5 space-y-2">
+                    <div className="bg-blue-50/50 border border-blue-200 rounded-xl p-3.5 space-y-2">
                       <div className="flex items-center gap-1.5">
                         <span className="bg-blue-600 text-white font-bold text-[10px] px-1.5 py-0.5 rounded uppercase">Utama</span>
                         <h4 className="text-xs font-bold text-blue-900">Acuan Nama / Wilayah Kalurahan (Wajib)</h4>
@@ -1486,7 +1485,7 @@ export default function DataDesa() {
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         
                         {/* C1 */}
-                        <div className="border border-slate-150 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
+                        <div className="border border-slate-200 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-1.5">
                               <span className="bg-slate-200 text-slate-800 font-bold text-[9px] px-1.5 py-0.5 rounded">C1</span>
@@ -1507,7 +1506,7 @@ export default function DataDesa() {
                         </div>
 
                         {/* C2 */}
-                        <div className="border border-slate-150 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
+                        <div className="border border-slate-200 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-1.5">
                               <span className="bg-slate-200 text-slate-800 font-bold text-[9px] px-1.5 py-0.5 rounded">C2</span>
@@ -1528,7 +1527,7 @@ export default function DataDesa() {
                         </div>
 
                         {/* C3 */}
-                        <div className="border border-slate-150 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
+                        <div className="border border-slate-200 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-1.5">
                               <span className="bg-slate-200 text-slate-800 font-bold text-[9px] px-1.5 py-0.5 rounded">C3</span>
@@ -1549,7 +1548,7 @@ export default function DataDesa() {
                         </div>
 
                         {/* C4 */}
-                        <div className="border border-slate-150 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
+                        <div className="border border-slate-200 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-1.5">
                               <span className="bg-slate-200 text-slate-800 font-bold text-[9px] px-1.5 py-0.5 rounded">C4</span>
@@ -1570,7 +1569,7 @@ export default function DataDesa() {
                         </div>
 
                         {/* C5 */}
-                        <div className="border border-slate-150 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
+                        <div className="border border-slate-200 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-1.5">
                               <span className="bg-slate-200 text-slate-800 font-bold text-[9px] px-1.5 py-0.5 rounded">C5</span>
@@ -1591,7 +1590,7 @@ export default function DataDesa() {
                         </div>
 
                         {/* BPKal */}
-                        <div className="border border-slate-150 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
+                        <div className="border border-slate-200 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-1.5">
                               <span className="bg-slate-200 text-slate-800 font-bold text-[9px] px-1.5 py-0.5 rounded">Lain</span>
@@ -1631,14 +1630,14 @@ export default function DataDesa() {
               {/* Step 3: Preview Data */}
               {isImportPreviewGenerated && (
                 <div className="border border-slate-200 rounded-xl p-4 space-y-4">
-                  <div className="border-b border-slate-150 pb-2.5">
+                  <div className="border-b border-slate-200 pb-2.5">
                     <label className="block text-sm font-bold text-slate-800">3. Pratinjau Hasil Pencocokan (Tinjau Sebelum Simpan)</label>
                     <p className="text-xs text-slate-500 mt-1">Sistem berhasil memetakan {importPreviewData.filter(d => d.matched).length} kalurahan dari total 86 kalurahan resmi Sleman.</p>
                   </div>
 
                   {/* Unmatched Rows manual correction */}
                   {unmatchedRows.length > 0 && (
-                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl space-y-2.5 text-xs">
+                    <div className="bg-amber-50 border border-amber-255 p-4 rounded-xl space-y-2.5 text-xs">
                       <h4 className="font-bold text-amber-900 flex items-center gap-1.5">
                         <AlertTriangle size={16} className="text-amber-600 animate-pulse" />
                         <span>Kalurahan Tidak Terdeteksi Otomatis ({unmatchedRows.length})</span>
@@ -1671,7 +1670,7 @@ export default function DataDesa() {
                   {/* Preview Table */}
                   <div className="overflow-x-auto max-h-[280px] border border-slate-100 rounded-xl">
                     <table className="min-w-full text-xs text-left text-slate-700 border-collapse">
-                      <thead className="bg-slate-50 text-slate-600 uppercase font-semibold border-b">
+                      <thead className="bg-slate-50 text-slate-650 uppercase font-semibold border-b">
                         <tr>
                           <th className="px-4 py-2.5">Kalurahan</th>
                           <th className="px-4 py-2.5">Kecamatan</th>
