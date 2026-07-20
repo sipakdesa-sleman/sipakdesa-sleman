@@ -320,3 +320,14 @@ export async function copyDesaRawValues(fromPeriod, toPeriod) {
 
   return { success: true, count: payloads.length };
 }
+
+export async function saveBulkRawValues(payloads) {
+  if (!payloads || payloads.length === 0) return;
+  const { error } = await supabase
+    .from("sipakdesa_desa_raw_values")
+    .upsert(payloads, { onConflict: "desa_id,period_id" });
+
+  if (error) {
+    throw new Error(`Gagal menyimpan data kriteria massal: ${error.message}`);
+  }
+}
