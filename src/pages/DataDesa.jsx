@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FileDown, Plus, Save, Pen, Trash2, X, Copy, Upload, AlertTriangle } from "lucide-react";
+import { FileDown, Plus, Save, Pen, Trash2, X, Copy, Upload, AlertTriangle, FileSpreadsheet, Info, Check, AlertCircle } from "lucide-react";
 import Table from "../components/Table";
 import StatCard from "../components/StatCard";
 import { getAllDesa, createDesa, updateDesa, deleteDesa, getRawValuesForDesaPeriod, setRawValuesForDesaPeriod, listRawValuesForPeriod, copyDesaRawValues, saveBulkRawValues } from "../services/desaService";
@@ -1393,8 +1393,11 @@ export default function DataDesa() {
           <div className="w-full max-w-4xl rounded-2xl bg-white p-5 shadow-lg max-h-[90vh] overflow-y-auto sm:p-6 flex flex-col gap-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <h3 className="text-lg font-semibold text-slate-900">Import Data Kalurahan (CSV / Excel)</h3>
-                <p className="text-xs text-slate-500">Unggah berkas data mentah untuk periode {selectedPeriodData?.year ?? selectedPeriod}</p>
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Upload className="text-blue-600" size={20} />
+                  <span>Import Data Kalurahan (CSV / Excel)</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">Unggah berkas data mentah untuk periode {selectedPeriodData?.year ?? selectedPeriod}</p>
               </div>
               <button
                 onClick={() => {
@@ -1414,33 +1417,34 @@ export default function DataDesa() {
             <div className="space-y-4">
               {/* Step 1: Upload File */}
               <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/50">
-                <label className="block text-sm font-semibold text-slate-800 mb-2">1. Pilih Berkas CSV / Excel</label>
+                <label className="block text-sm font-bold text-slate-800 mb-2">1. Pilih Berkas CSV / Excel</label>
                 <div className="flex items-center gap-3">
                   <input
                     type="file"
                     accept=".csv, .xlsx, .xls"
                     onChange={handleImportFileChange}
-                    className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 file:hover:bg-blue-100 cursor-pointer"
+                    className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-750 file:hover:bg-blue-100 cursor-pointer"
                   />
                 </div>
                 {importFile && (
-                  <p className="text-xs text-slate-500 mt-2 font-medium">
-                    📄 Terbaca: {importFile.name} ({csvRows.length} baris data ditemukan)
-                  </p>
+                  <div className="flex items-center gap-2 text-xs text-blue-800 bg-blue-50 border border-blue-100 p-2.5 rounded-lg mt-3">
+                    <FileSpreadsheet size={16} className="text-blue-600 shrink-0" />
+                    <span>Terbaca: <strong className="font-semibold">{importFile.name}</strong> ({csvRows.length} baris data ditemukan)</span>
+                  </div>
                 )}
               </div>
 
               {/* Step 2: Mapping Columns */}
               {csvRows.length > 0 && (
                 <div className="border border-slate-200 rounded-xl p-4 space-y-4">
-                  <div className="flex justify-between items-center flex-wrap gap-3">
-                    <label className="block text-sm font-semibold text-slate-800">2. Sesuaikan Baris Header & Pemetaan Kolom</label>
+                  <div className="flex justify-between items-center flex-wrap gap-3 border-b border-slate-150 pb-3">
+                    <label className="block text-sm font-bold text-slate-800">2. Sesuaikan Baris Header & Pemetaan Kolom</label>
                     <div className="flex items-center gap-2 text-xs">
                       <span className="text-slate-600 font-medium">Baris Header:</span>
                       <select
                         value={headerRowIdx}
                         onChange={(e) => handleHeaderRowChange(e.target.value)}
-                        className="rounded border border-slate-200 px-2 py-1 bg-white text-slate-800 font-semibold"
+                        className="rounded border border-slate-200 px-2 py-1 bg-white text-slate-800 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-400"
                       >
                         {Array.from({ length: Math.min(10, csvRows.length) }, (_, i) => (
                           <option key={i} value={i}>Baris ke-{i + 1}</option>
@@ -1449,114 +1453,165 @@ export default function DataDesa() {
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-500 leading-relaxed bg-blue-50 text-blue-900 border border-blue-200 p-2.5 rounded-lg">
-                    💡 <strong>Tips Legenda:</strong> Sesuaikan kolom file Anda dengan kriteria di aplikasi. Gunakan opsi <em>"-- Lewati --"</em> untuk kriteria yang tidak ingin diubah di database (impor parsial).
-                  </p>
+                  <div className="flex items-start gap-2.5 text-xs leading-relaxed bg-slate-50 border border-slate-200 p-3 rounded-xl">
+                    <Info size={16} className="text-slate-555 shrink-0 mt-0.5" />
+                    <span className="text-slate-600">
+                      <strong>Petunjuk Pemetaan:</strong> Cocokkan kolom dari file Excel/CSV Anda ke kriteria sistem di bawah. Pilih opsi <em>"-- Lewati (Jangan Impor) --"</em> untuk kolom kriteria yang tidak ingin diperbarui datanya.
+                    </span>
+                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    {/* Name column mapping */}
-                    <div className="space-y-1">
-                      <label className="font-semibold text-slate-700 block">Acuan Nama/Wilayah Kalurahan (Wajib):</label>
+                  <div className="space-y-4">
+                    {/* Section: Kolom Acuan Nama (Wajib) */}
+                    <div className="bg-blue-50/50 border border-blue-150 rounded-xl p-3.5 space-y-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="bg-blue-600 text-white font-bold text-[10px] px-1.5 py-0.5 rounded uppercase">Utama</span>
+                        <h4 className="text-xs font-bold text-blue-900">Acuan Nama / Wilayah Kalurahan (Wajib)</h4>
+                      </div>
+                      <p className="text-[11px] text-slate-500">Kolom ini digunakan sistem sebagai kunci pencocokan baris dengan 86 Kalurahan resmi di Sleman.</p>
                       <select
                         value={mappedColumns.name}
                         onChange={(e) => setMappedColumns(prev => ({ ...prev, name: Number(e.target.value) }))}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-200 font-medium"
+                        className="w-full text-xs rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200 font-semibold"
                       >
-                        <option value={-1}>-- Pilih Kolom Nama --</option>
+                        <option value={-1}>-- Pilih Kolom Acuan Nama --</option>
                         {csvHeaders.map(h => (
                           <option key={h.index} value={h.index}>Kolom {h.letter}: {h.text}</option>
                         ))}
                       </select>
                     </div>
 
-                    {/* C1 Padukuhan */}
-                    <div className="space-y-1">
-                      <label className="font-semibold text-slate-700 block">C1 - Jumlah Padukuhan / Dukuh:</label>
-                      <select
-                        value={mappedColumns.C1}
-                        onChange={(e) => setMappedColumns(prev => ({ ...prev, C1: Number(e.target.value) }))}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-200"
-                      >
-                        <option value={-1}>-- Lewati (Jangan Impor) --</option>
-                        {csvHeaders.map(h => (
-                          <option key={h.index} value={h.index}>Kolom {h.letter}: {h.text}</option>
-                        ))}
-                      </select>
-                    </div>
+                    {/* Section: Pemetaan Kriteria Kuantitatif */}
+                    <div className="space-y-2.5">
+                      <h4 className="text-xs font-bold text-slate-800 border-b pb-1.5">Pemetaan Nilai Kriteria & BPKal:</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        
+                        {/* C1 */}
+                        <div className="border border-slate-150 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="bg-slate-200 text-slate-800 font-bold text-[9px] px-1.5 py-0.5 rounded">C1</span>
+                              <span className="font-bold text-slate-700 text-xs">Jumlah Padukuhan</span>
+                            </div>
+                            <p className="text-[10px] text-slate-400">Total dukuh/dusun di kalurahan.</p>
+                          </div>
+                          <select
+                            value={mappedColumns.C1}
+                            onChange={(e) => setMappedColumns(prev => ({ ...prev, C1: Number(e.target.value) }))}
+                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                          >
+                            <option value={-1}>-- Lewati (Jangan Impor) --</option>
+                            {csvHeaders.map(h => (
+                              <option key={h.index} value={h.index}>Kolom {h.letter}: {h.text}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                    {/* C2 Miskin */}
-                    <div className="space-y-1">
-                      <label className="font-semibold text-slate-700 block">C2 - Jumlah Penduduk Miskin:</label>
-                      <select
-                        value={mappedColumns.C2}
-                        onChange={(e) => setMappedColumns(prev => ({ ...prev, C2: Number(e.target.value) }))}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-200"
-                      >
-                        <option value={-1}>-- Lewati (Jangan Impor) --</option>
-                        {csvHeaders.map(h => (
-                          <option key={h.index} value={h.index}>Kolom {h.letter}: {h.text}</option>
-                        ))}
-                      </select>
-                    </div>
+                        {/* C2 */}
+                        <div className="border border-slate-150 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="bg-slate-200 text-slate-800 font-bold text-[9px] px-1.5 py-0.5 rounded">C2</span>
+                              <span className="font-bold text-slate-700 text-xs">Penduduk Miskin</span>
+                            </div>
+                            <p className="text-[10px] text-slate-400">Total jumlah jiwa miskin.</p>
+                          </div>
+                          <select
+                            value={mappedColumns.C2}
+                            onChange={(e) => setMappedColumns(prev => ({ ...prev, C2: Number(e.target.value) }))}
+                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                          >
+                            <option value={-1}>-- Lewati (Jangan Impor) --</option>
+                            {csvHeaders.map(h => (
+                              <option key={h.index} value={h.index}>Kolom {h.letter}: {h.text}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                    {/* C3 Luas */}
-                    <div className="space-y-1">
-                      <label className="font-semibold text-slate-700 block">C3 - Luas Wilayah (Ha):</label>
-                      <select
-                        value={mappedColumns.C3}
-                        onChange={(e) => setMappedColumns(prev => ({ ...prev, C3: Number(e.target.value) }))}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-200"
-                      >
-                        <option value={-1}>-- Lewati (Jangan Impor) --</option>
-                        {csvHeaders.map(h => (
-                          <option key={h.index} value={h.index}>Kolom {h.letter}: {h.text}</option>
-                        ))}
-                      </select>
-                    </div>
+                        {/* C3 */}
+                        <div className="border border-slate-150 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="bg-slate-200 text-slate-800 font-bold text-[9px] px-1.5 py-0.5 rounded">C3</span>
+                              <span className="font-bold text-slate-700 text-xs">Luas Wilayah (Ha)</span>
+                            </div>
+                            <p className="text-[10px] text-slate-400">Luas wilayah dalam Hektar.</p>
+                          </div>
+                          <select
+                            value={mappedColumns.C3}
+                            onChange={(e) => setMappedColumns(prev => ({ ...prev, C3: Number(e.target.value) }))}
+                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                          >
+                            <option value={-1}>-- Lewati (Jangan Impor) --</option>
+                            {csvHeaders.map(h => (
+                              <option key={h.index} value={h.index}>Kolom {h.letter}: {h.text}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                    {/* C4 Penduduk */}
-                    <div className="space-y-1">
-                      <label className="font-semibold text-slate-700 block">C4 - Jumlah Penduduk:</label>
-                      <select
-                        value={mappedColumns.C4}
-                        onChange={(e) => setMappedColumns(prev => ({ ...prev, C4: Number(e.target.value) }))}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-200"
-                      >
-                        <option value={-1}>-- Lewati (Jangan Impor) --</option>
-                        {csvHeaders.map(h => (
-                          <option key={h.index} value={h.index}>Kolom {h.letter}: {h.text}</option>
-                        ))}
-                      </select>
-                    </div>
+                        {/* C4 */}
+                        <div className="border border-slate-150 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="bg-slate-200 text-slate-800 font-bold text-[9px] px-1.5 py-0.5 rounded">C4</span>
+                              <span className="font-bold text-slate-700 text-xs">Jumlah Penduduk</span>
+                            </div>
+                            <p className="text-[10px] text-slate-400">Total jiwa di kalurahan.</p>
+                          </div>
+                          <select
+                            value={mappedColumns.C4}
+                            onChange={(e) => setMappedColumns(prev => ({ ...prev, C4: Number(e.target.value) }))}
+                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                          >
+                            <option value={-1}>-- Lewati (Jangan Impor) --</option>
+                            {csvHeaders.map(h => (
+                              <option key={h.index} value={h.index}>Kolom {h.letter}: {h.text}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                    {/* C5 Geografis */}
-                    <div className="space-y-1">
-                      <label className="font-semibold text-slate-700 block">C5 - Indeks Kesulitan Geografis:</label>
-                      <select
-                        value={mappedColumns.C5}
-                        onChange={(e) => setMappedColumns(prev => ({ ...prev, C5: Number(e.target.value) }))}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-200"
-                      >
-                        <option value={-1}>-- Lewati (Jangan Impor) --</option>
-                        {csvHeaders.map(h => (
-                          <option key={h.index} value={h.index}>Kolom {h.letter}: {h.text}</option>
-                        ))}
-                      </select>
-                    </div>
+                        {/* C5 */}
+                        <div className="border border-slate-150 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="bg-slate-200 text-slate-800 font-bold text-[9px] px-1.5 py-0.5 rounded">C5</span>
+                              <span className="font-bold text-slate-700 text-xs">Kesulitan Geografis</span>
+                            </div>
+                            <p className="text-[10px] text-slate-400">Skor kesulitan geografis.</p>
+                          </div>
+                          <select
+                            value={mappedColumns.C5}
+                            onChange={(e) => setMappedColumns(prev => ({ ...prev, C5: Number(e.target.value) }))}
+                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                          >
+                            <option value={-1}>-- Lewati (Jangan Impor) --</option>
+                            {csvHeaders.map(h => (
+                              <option key={h.index} value={h.index}>Kolom {h.letter}: {h.text}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                    {/* BPKal */}
-                    <div className="space-y-1">
-                      <label className="font-semibold text-slate-700 block">Jumlah Anggota BPKal:</label>
-                      <select
-                        value={mappedColumns.bpkal}
-                        onChange={(e) => setMappedColumns(prev => ({ ...prev, bpkal: Number(e.target.value) }))}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-200"
-                      >
-                        <option value={-1}>-- Lewati (Jangan Impor) --</option>
-                        {csvHeaders.map(h => (
-                          <option key={h.index} value={h.index}>Kolom {h.letter}: {h.text}</option>
-                        ))}
-                      </select>
+                        {/* BPKal */}
+                        <div className="border border-slate-150 bg-slate-50/30 p-3 rounded-xl flex flex-col justify-between gap-2">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="bg-slate-200 text-slate-800 font-bold text-[9px] px-1.5 py-0.5 rounded">Lain</span>
+                              <span className="font-bold text-slate-700 text-xs">Anggota BPKal</span>
+                            </div>
+                            <p className="text-[10px] text-slate-400">Jumlah anggota legislatif desa.</p>
+                          </div>
+                          <select
+                            value={mappedColumns.bpkal}
+                            onChange={(e) => setMappedColumns(prev => ({ ...prev, bpkal: Number(e.target.value) }))}
+                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                          >
+                            <option value={-1}>-- Lewati (Jangan Impor) --</option>
+                            {csvHeaders.map(h => (
+                              <option key={h.index} value={h.index}>Kolom {h.letter}: {h.text}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                      </div>
                     </div>
                   </div>
 
@@ -1564,8 +1619,9 @@ export default function DataDesa() {
                     <button
                       type="button"
                       onClick={handleGenerateImportPreview}
-                      className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm transition"
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs transition shadow-sm inline-flex items-center gap-2"
                     >
+                      <RefreshCw size={14} />
                       Proses & Tampilkan Pratinjau
                     </button>
                   </div>
@@ -1575,21 +1631,21 @@ export default function DataDesa() {
               {/* Step 3: Preview Data */}
               {isImportPreviewGenerated && (
                 <div className="border border-slate-200 rounded-xl p-4 space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-800">3. Pratinjau Hasil Pencocokan (Tinjau Sebelum Simpan)</label>
+                  <div className="border-b border-slate-150 pb-2.5">
+                    <label className="block text-sm font-bold text-slate-800">3. Pratinjau Hasil Pencocokan (Tinjau Sebelum Simpan)</label>
                     <p className="text-xs text-slate-500 mt-1">Sistem berhasil memetakan {importPreviewData.filter(d => d.matched).length} kalurahan dari total 86 kalurahan resmi Sleman.</p>
                   </div>
 
                   {/* Unmatched Rows manual correction */}
                   {unmatchedRows.length > 0 && (
-                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl space-y-2 text-xs">
+                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl space-y-2.5 text-xs">
                       <h4 className="font-bold text-amber-900 flex items-center gap-1.5">
-                        <AlertTriangle size={16} className="text-amber-600" />
-                        <span>Terdapat {unmatchedRows.length} baris kalurahan di file yang tidak terdeteksi otomatis:</span>
+                        <AlertTriangle size={16} className="text-amber-600 animate-pulse" />
+                        <span>Kalurahan Tidak Terdeteksi Otomatis ({unmatchedRows.length})</span>
                       </h4>
                       <p className="text-amber-700">Jika nama kalurahan di file dinas lain salah ketik, Anda bisa mengarahkan secara manual ke nama kalurahan Sleman yang benar melalui dropdown di bawah ini:</p>
                       
-                      <div className="max-h-[150px] overflow-y-auto divide-y divide-amber-100 bg-white border border-amber-200 rounded-lg p-2 space-y-2.5">
+                      <div className="max-h-[150px] overflow-y-auto divide-y divide-amber-100 bg-white border border-amber-200 rounded-lg p-2.5 space-y-2.5">
                         {unmatchedRows.map((u) => (
                           <div key={u.rowIndex} className="flex items-center justify-between gap-3 pt-2 text-slate-800 font-medium">
                             <span>Baris {u.rowIndex + 1}: <strong>"{u.rawName}"</strong></span>
@@ -1598,7 +1654,7 @@ export default function DataDesa() {
                               <select
                                 value={u.selectedDesaId}
                                 onChange={(e) => handleManualMatch(u.rowIndex, e.target.value)}
-                                className="rounded border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                className="rounded border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-blue-400 text-xs"
                               >
                                 <option value="">-- Lewati Baris Ini --</option>
                                 {desa.map((d) => (
@@ -1617,39 +1673,41 @@ export default function DataDesa() {
                     <table className="min-w-full text-xs text-left text-slate-700 border-collapse">
                       <thead className="bg-slate-50 text-slate-600 uppercase font-semibold border-b">
                         <tr>
-                          <th className="px-4 py-2">Kalurahan</th>
-                          <th className="px-4 py-2">Kecamatan</th>
-                          <th className="px-4 py-2 text-center">Status</th>
-                          {mappedColumns.C1 !== -1 && <th className="px-4 py-2 text-right">C1 (Dukuh)</th>}
-                          {mappedColumns.C2 !== -1 && <th className="px-4 py-2 text-right">C2 (Miskin)</th>}
-                          {mappedColumns.C3 !== -1 && <th className="px-4 py-2 text-right">C3 (Luas)</th>}
-                          {mappedColumns.C4 !== -1 && <th className="px-4 py-2 text-right">C4 (Penduduk)</th>}
-                          {mappedColumns.C5 !== -1 && <th className="px-4 py-2 text-right">C5 (Kesulitan)</th>}
-                          {mappedColumns.bpkal !== -1 && <th className="px-4 py-2 text-right">BPKal</th>}
+                          <th className="px-4 py-2.5">Kalurahan</th>
+                          <th className="px-4 py-2.5">Kecamatan</th>
+                          <th className="px-4 py-2.5 text-center">Status</th>
+                          {mappedColumns.C1 !== -1 && <th className="px-4 py-2.5 text-right">C1 (Dukuh)</th>}
+                          {mappedColumns.C2 !== -1 && <th className="px-4 py-2.5 text-right">C2 (Miskin)</th>}
+                          {mappedColumns.C3 !== -1 && <th className="px-4 py-2.5 text-right">C3 (Luas)</th>}
+                          {mappedColumns.C4 !== -1 && <th className="px-4 py-2.5 text-right">C4 (Penduduk)</th>}
+                          {mappedColumns.C5 !== -1 && <th className="px-4 py-2.5 text-right">C5 (Kesulitan)</th>}
+                          {mappedColumns.bpkal !== -1 && <th className="px-4 py-2.5 text-right">BPKal</th>}
                         </tr>
                       </thead>
                       <tbody className="divide-y bg-white">
                         {importPreviewData.map((d) => (
-                          <tr key={d.id} className={d.matched ? "bg-emerald-50/20" : "bg-red-50/10 text-slate-400"}>
-                            <td className="px-4 py-2 font-semibold text-slate-900">{d.nama}</td>
-                            <td className="px-4 py-2">{d.kecamatan}</td>
-                            <td className="px-4 py-2 text-center">
+                          <tr key={d.id} className={d.matched ? "bg-emerald-50/20" : "bg-red-50/5 text-slate-400"}>
+                            <td className="px-4 py-2.5 font-semibold text-slate-900">{d.nama}</td>
+                            <td className="px-4 py-2.5">{d.kecamatan}</td>
+                            <td className="px-4 py-2.5 text-center">
                               {d.matched ? (
-                                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                  ✅ Cocok (Baris {d.rowNum})
+                                <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                  <Check size={10} className="stroke-[3]" />
+                                  <span>Cocok (Baris {d.rowNum})</span>
                                 </span>
                               ) : (
-                                <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                  ⚠️ Tidak Ditemukan
+                                <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                  <AlertCircle size={10} />
+                                  <span>Dilewati</span>
                                 </span>
                               )}
                             </td>
-                            {mappedColumns.C1 !== -1 && <td className="px-4 py-2 text-right font-medium">{d.matched && d.values[padukuhanCode] != null ? formatInteger(d.values[padukuhanCode]) : "-"}</td>}
-                            {mappedColumns.C2 !== -1 && <td className="px-4 py-2 text-right font-medium">{d.matched && d.values[miskinCode] != null ? formatInteger(d.values[miskinCode]) : "-"}</td>}
-                            {mappedColumns.C3 !== -1 && <td className="px-4 py-2 text-right font-medium">{d.matched && d.values[luasCode] != null ? formatDecimalDisplay(d.values[luasCode]) : "-"}</td>}
-                            {mappedColumns.C4 !== -1 && <td className="px-4 py-2 text-right font-medium">{d.matched && d.values[pendudukCode] != null ? formatInteger(d.values[pendudukCode]) : "-"}</td>}
-                            {mappedColumns.C5 !== -1 && <td className="px-4 py-2 text-right font-medium">{d.matched && d.values[geografisCode] != null ? formatDecimalDisplay(d.values[geografisCode]) : "-"}</td>}
-                            {mappedColumns.bpkal !== -1 && <td className="px-4 py-2 text-right font-medium">{d.matched && d.jumlah_bpkal != null ? formatInteger(d.jumlah_bpkal) : "-"}</td>}
+                            {mappedColumns.C1 !== -1 && <td className="px-4 py-2.5 text-right font-medium">{d.matched && d.values[padukuhanCode] != null ? formatInteger(d.values[padukuhanCode]) : "-"}</td>}
+                            {mappedColumns.C2 !== -1 && <td className="px-4 py-2.5 text-right font-medium">{d.matched && d.values[miskinCode] != null ? formatInteger(d.values[miskinCode]) : "-"}</td>}
+                            {mappedColumns.C3 !== -1 && <td className="px-4 py-2.5 text-right font-medium">{d.matched && d.values[luasCode] != null ? formatDecimalDisplay(d.values[luasCode]) : "-"}</td>}
+                            {mappedColumns.C4 !== -1 && <td className="px-4 py-2.5 text-right font-medium">{d.matched && d.values[pendudukCode] != null ? formatInteger(d.values[pendudukCode]) : "-"}</td>}
+                            {mappedColumns.C5 !== -1 && <td className="px-4 py-2.5 text-right font-medium">{d.matched && d.values[geografisCode] != null ? formatDecimalDisplay(d.values[geografisCode]) : "-"}</td>}
+                            {mappedColumns.bpkal !== -1 && <td className="px-4 py-2.5 text-right font-medium">{d.matched && d.jumlah_bpkal != null ? formatInteger(d.jumlah_bpkal) : "-"}</td>}
                           </tr>
                         ))}
                       </tbody>
