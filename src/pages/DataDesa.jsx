@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FileDown, Plus, Save, Pen, Trash2, X, Copy, Upload, AlertTriangle, FileSpreadsheet, Info, Check, AlertCircle, RefreshCw } from "lucide-react";
+import { FileDown, Plus, Save, Pen, Trash2, X, Copy, Upload, AlertTriangle, FileSpreadsheet, Info, Check, AlertCircle, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import Table from "../components/Table";
 import StatCard from "../components/StatCard";
 import { getAllDesa, createDesa, updateDesa, deleteDesa, getRawValuesForDesaPeriod, setRawValuesForDesaPeriod, listRawValuesForPeriod, copyDesaRawValues, saveBulkRawValues } from "../services/desaService";
@@ -102,6 +102,8 @@ export default function DataDesa() {
   const [formCriteriaValues, setFormCriteriaValues] = useState({});
   const [formJumlahBpkal, setFormJumlahBpkal] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortColumn, setSortColumn] = useState("code");
+  const [sortDirection, setSortDirection] = useState("asc");
   const [rawMap, setRawMap] = useState(new Map()); // desaId -> values
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -235,46 +237,118 @@ export default function DataDesa() {
     [selectedPeriod, defaultPeriodId, rawMap]
   );
 
-  const filteredDesa = desa
-    .filter(d =>
-      d.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(d.code ?? "").toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort(compareByCodeThenName);
+  const processedDesaList = useMemo(() => {
+    return desa.map((d) => {
+      const values = effectiveRawMap.get(d.id) || {};
+      const merged = {
+        id: d.id,
+        code: d.code ?? "",
+        nama: d.nama,
+        kecamatan: d.kecamatan ?? "",
+        jumlah_bpkal: (values.jumlah_bpkal ?? d.jumlah_bpkal) ?? "",
+      };
 
-  const totalPages = Math.max(1, Math.ceil(filteredDesa.length / pageSize));
+      criteriaList.forEach((c) => {
+        let val = values[c.code];
+        if (val === undefined || val === null) {
+          if (c.code === padukuhanCode) val = d.jumlah_padukuhan;
+          else if (c.code === miskinCode) val = d.jumlah_penduduk_miskin;
+          else if (c.code === luasCode) val = d.luas_wilayah;
+          else if (c.code === pendudukCode) val = d.jumlah_penduduk;
+          else if (c.code === geografisCode) val = d.indeks_kesulitan_geografis;
+        }
+        merged[c.code] = val ?? "";
+      });
+
+      return merged;
+    });
+  }, [desa, effectiveRawMap, criteriaList, padukuhanCode, miskinCode, luasCode, pendudukCode, geografisCode]);
+
+  const filteredDesa = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return processedDesaList;
+
+    return processedDesaList.filter((d) => {
+      // 1. Identity fields
+      if (d.nama.toLowerCase().includes(term)) return true;
+      if (d.kecamatan.toLowerCase().includes(term)) return true;
+      if (String(d.code).toLowerCase().includes(term)) return true;
+
+      // 2. Numeric / text criteria
+      if (String(d.jumlah_bpkal).includes(term)) return true;
+
+      for (const c of criteriaList) {
+        const val = d[c.code];
+        if (val !== undefined && val !== null && String(val).toLowerCase().includes(term)) {
+          return true;
+        }
+      }
+
+      return false;
+    });
+  }, [processedDesaList, searchTerm, criteriaList]);
+
+  const handleSort = (colKey) => {
+    if (sortColumn === colKey) {
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortColumn("code");
+        setSortDirection("asc");
+      }
+    } else {
+      setSortColumn(colKey);
+      setSortDirection("asc");
+    }
+    setPage(1); // Reset page on sort change
+  };
+
+  const sortedDesa = useMemo(() => {
+    if (!sortColumn || !sortDirection) {
+      return [...filteredDesa].sort((a, b) => compareByCodeThenName(a, b));
+    }
+
+    const compareValues = (aVal, bVal, colKey) => {
+      if (colKey === "nama" || colKey === "kecamatan") {
+        return String(aVal).localeCompare(String(bVal), "id", { sensitivity: "base" });
+      }
+
+      // Check numeric
+      const aNum = parseFloat(aVal);
+      const bNum = parseFloat(bVal);
+
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        return aNum - bNum;
+      }
+
+      // Default string comparison
+      return String(aVal).localeCompare(String(bVal), undefined, { numeric: true });
+    };
+
+    return [...filteredDesa].sort((a, b) => {
+      if (sortColumn === "no") {
+        return compareByCodeThenName(a, b);
+      }
+      const aVal = a[sortColumn];
+      const bVal = b[sortColumn];
+
+      const res = compareValues(aVal, bVal, sortColumn);
+      return sortDirection === "asc" ? res : -res;
+    });
+  }, [filteredDesa, sortColumn, sortDirection]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedDesa.length / pageSize));
   const startIndex = (page - 1) * pageSize;
-  const paginatedDesa = filteredDesa.slice(startIndex, startIndex + pageSize);
+  const paginatedDesa = sortedDesa.slice(startIndex, startIndex + pageSize);
 
   // Calculate unique kecamatan count
   const uniqueKecamatan = [...new Set(desa.map(d => d.kecamatan).filter(k => k))];
   const totalKecamatan = uniqueKecamatan.length;
 
-  const tableData = paginatedDesa.map((d, i) => {
-    const values = effectiveRawMap.get(d.id) || {};
-    const row = {
-      no: startIndex + i + 1,
-      id: d.id,
-      code: d.code ?? "-",
-      nama: d.nama,
-      kecamatan: d.kecamatan,
-      jumlah_bpkal: (values.jumlah_bpkal ?? d.jumlah_bpkal) ?? "",
-    };
-
-    criteriaList.forEach(c => {
-      let val = values[c.code];
-      if (val === undefined || val === null) {
-        if (c.code === padukuhanCode) val = d.jumlah_padukuhan;
-        else if (c.code === miskinCode) val = d.jumlah_penduduk_miskin;
-        else if (c.code === luasCode) val = d.luas_wilayah;
-        else if (c.code === pendudukCode) val = d.jumlah_penduduk;
-        else if (c.code === geografisCode) val = d.indeks_kesulitan_geografis;
-      }
-      row[c.code] = val ?? "";
-    });
-
-    return row;
-  });
+  const tableData = paginatedDesa.map((d, i) => ({
+    ...d,
+    no: startIndex + i + 1,
+  }));
 
   const handleExportPDF = () => {
     const printContent = `
@@ -992,6 +1066,28 @@ export default function DataDesa() {
     );
   }
 
+  const renderSortableHeader = (label, colKey, alignClass = "text-left") => {
+    const isSorted = sortColumn === colKey;
+    let icon = <ArrowUpDown size={12} className="text-gray-400 opacity-60 group-hover:opacity-100" />;
+    if (isSorted) {
+      icon = sortDirection === "asc"
+        ? <ArrowUp size={12} className="text-blue-600 font-bold" />
+        : <ArrowDown size={12} className="text-blue-600 font-bold" />;
+    }
+
+    return (
+      <th
+        className={`px-6 py-3 ${alignClass} font-semibold text-slate-800 cursor-pointer select-none group hover:bg-slate-100 transition duration-150`}
+        onClick={() => handleSort(colKey)}
+      >
+        <div className={`flex items-center gap-1.5 ${alignClass === "text-right" ? "justify-end" : ""}`}>
+          <span>{label}</span>
+          <span className="shrink-0 transition-transform duration-100">{icon}</span>
+        </div>
+      </th>
+    );
+  };
+
   return (
     <div className="page-shell">
       {/* Header */}
@@ -1123,16 +1219,12 @@ export default function DataDesa() {
           <table className="table-core">
             <thead className="table-head">
               <tr>
-                <th className="px-6 py-3 text-left font-medium">NO</th>
-                <th className="px-6 py-3 text-left font-medium">CODE</th>
-                <th className="px-6 py-3 text-left font-medium">NAMA KALURAHAN</th>
-                <th className="px-6 py-3 text-left font-medium">KECAMATAN</th>
-                {criteriaList.map((c) => (
-                  <th key={c.code} className="px-6 py-3 text-left font-medium">
-                    {c.name}
-                  </th>
-                ))}
-                <th className="px-6 py-3 text-left font-medium">Jumlah BPKal</th>
+                {renderSortableHeader("NO", "no")}
+                {renderSortableHeader("CODE", "code")}
+                {renderSortableHeader("NAMA KALURAHAN", "nama")}
+                {renderSortableHeader("KECAMATAN", "kecamatan")}
+                {criteriaList.map((c) => renderSortableHeader(c.name, c.code))}
+                {renderSortableHeader("Jumlah BPKal", "jumlah_bpkal")}
                 <th className="px-6 py-3 text-left font-medium">AKSI</th>
               </tr>
             </thead>
@@ -1140,9 +1232,9 @@ export default function DataDesa() {
               {tableData.map((row, idx) => (
                 <tr key={idx} className="table-row">
                   <td className="px-6 py-4">{row.no}</td>
-                  <td className="px-6 py-4 text-gray-700">{row.code}</td>
+                  <td className="px-6 py-4 text-gray-700">{row.code || "-"}</td>
                   <td className="px-6 py-4 font-medium text-gray-900">{row.nama}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.kecamatan}</td>
+                  <td className="px-6 py-4 text-gray-600">{row.kecamatan || "-"}</td>
                   {criteriaList.map((c) => {
                     const val = row[c.code];
                     let displayVal = "-";
@@ -1163,14 +1255,14 @@ export default function DataDesa() {
                   <td className="px-6 py-4 text-gray-600">
                     <div className="flex gap-2">
                       <button
-                        onClick={() => openEditModal(filteredDesa[startIndex + idx])}
+                        onClick={() => openEditModal(desa.find(v => v.id === row.id))}
                         disabled={isLocked}
                         className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Pen size={14} /> Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(filteredDesa[startIndex + idx])}
+                        onClick={() => handleDelete(desa.find(v => v.id === row.id))}
                         disabled={isLocked}
                         className="px-3 py-1 bg-red-100 text-red-700 rounded inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
