@@ -268,19 +268,50 @@ export default function DataDesa() {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return processedDesaList;
 
+    const termNum = Number(term);
+    const isNumeric = !isNaN(termNum) && term !== "";
+
     return processedDesaList.filter((d) => {
-      // 1. Identity fields
+      // 1. Identity fields (always substring match)
       if (d.nama.toLowerCase().includes(term)) return true;
       if (d.kecamatan.toLowerCase().includes(term)) return true;
       if (String(d.code).toLowerCase().includes(term)) return true;
 
       // 2. Numeric / text criteria
-      if (String(d.jumlah_bpkal).includes(term)) return true;
+      if (isNumeric) {
+        // BPKal check
+        const bpkalVal = Number(d.jumlah_bpkal);
+        if (!isNaN(bpkalVal) && bpkalVal === termNum) return true;
 
-      for (const c of criteriaList) {
-        const val = d[c.code];
-        if (val !== undefined && val !== null && String(val).toLowerCase().includes(term)) {
-          return true;
+        // Criteria check
+        for (const c of criteriaList) {
+          const rawVal = d[c.code];
+          if (rawVal !== undefined && rawVal !== null && rawVal !== "") {
+            const valNum = Number(rawVal);
+            if (!isNaN(valNum)) {
+              if (termNum < 100) {
+                // Exact match for small numbers (single digits & tens)
+                if (valNum === termNum || Math.round(valNum) === termNum) {
+                  return true;
+                }
+              } else {
+                // Prefix or exact match for larger numbers
+                if (String(rawVal).startsWith(term) || valNum === termNum) {
+                  return true;
+                }
+              }
+            }
+          }
+        }
+      } else {
+        // Substring fallback for non-numeric search query
+        if (String(d.jumlah_bpkal).toLowerCase().includes(term)) return true;
+
+        for (const c of criteriaList) {
+          const rawVal = d[c.code];
+          if (rawVal !== undefined && rawVal !== null && String(rawVal).toLowerCase().includes(term)) {
+            return true;
+          }
         }
       }
 
@@ -1068,21 +1099,21 @@ export default function DataDesa() {
 
   const renderSortableHeader = (label, colKey, alignClass = "text-left") => {
     const isSorted = sortColumn === colKey;
-    let icon = <ArrowUpDown size={12} className="text-gray-400 opacity-60 group-hover:opacity-100" />;
+    let icon = <ArrowUpDown size={13} className="text-slate-400 opacity-0 group-hover:opacity-60 transition-opacity duration-150 shrink-0" />;
     if (isSorted) {
       icon = sortDirection === "asc"
-        ? <ArrowUp size={12} className="text-blue-600 font-bold" />
-        : <ArrowDown size={12} className="text-blue-600 font-bold" />;
+        ? <ArrowUp size={13} className="text-blue-600 font-bold opacity-100 shrink-0" />
+        : <ArrowDown size={13} className="text-blue-600 font-bold opacity-100 shrink-0" />;
     }
 
     return (
       <th
-        className={`px-6 py-3 ${alignClass} font-semibold text-slate-800 cursor-pointer select-none group hover:bg-slate-100 transition duration-150`}
+        className={`px-6 py-3.5 ${alignClass} font-semibold text-slate-700 cursor-pointer select-none group hover:bg-slate-50/80 hover:text-slate-900 transition duration-150 border-b border-slate-200`}
         onClick={() => handleSort(colKey)}
       >
         <div className={`flex items-center gap-1.5 ${alignClass === "text-right" ? "justify-end" : ""}`}>
-          <span>{label}</span>
-          <span className="shrink-0 transition-transform duration-100">{icon}</span>
+          <span className={`${isSorted ? "text-blue-600 font-bold" : ""}`}>{label}</span>
+          {icon}
         </div>
       </th>
     );
