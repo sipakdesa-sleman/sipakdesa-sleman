@@ -1470,7 +1470,7 @@ export default function DataDesa() {
                       <select
                         value={mappedColumns.name}
                         onChange={(e) => setMappedColumns(prev => ({ ...prev, name: Number(e.target.value) }))}
-                        className="w-full text-xs rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200 font-semibold"
+                        className="w-full text-xs rounded-xl border border-slate-200 bg-white px-3 pr-8 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200 font-semibold truncate"
                       >
                         <option value={-1}>-- Pilih Kolom Acuan Nama --</option>
                         {csvHeaders.map(h => (
@@ -1481,7 +1481,7 @@ export default function DataDesa() {
 
                     {/* Section: Pemetaan Kriteria Kuantitatif */}
                     <div className="space-y-2.5">
-                      <h4 className="text-xs font-bold text-slate-800 border-b pb-1.5">Pemetaan Nilai Kriteria & BPKal:</h4>
+                      <h4 className="text-xs font-bold text-slate-800 border-b border-slate-200 pb-1.5">Pemetaan Nilai Kriteria & BPKal:</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         
                         {/* C1 */}
@@ -1496,7 +1496,7 @@ export default function DataDesa() {
                           <select
                             value={mappedColumns.C1}
                             onChange={(e) => setMappedColumns(prev => ({ ...prev, C1: Number(e.target.value) }))}
-                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 pr-8 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400 truncate"
                           >
                             <option value={-1}>-- Lewati (Jangan Impor) --</option>
                             {csvHeaders.map(h => (
@@ -1517,7 +1517,7 @@ export default function DataDesa() {
                           <select
                             value={mappedColumns.C2}
                             onChange={(e) => setMappedColumns(prev => ({ ...prev, C2: Number(e.target.value) }))}
-                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 pr-8 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400 truncate"
                           >
                             <option value={-1}>-- Lewati (Jangan Impor) --</option>
                             {csvHeaders.map(h => (
@@ -1538,7 +1538,7 @@ export default function DataDesa() {
                           <select
                             value={mappedColumns.C3}
                             onChange={(e) => setMappedColumns(prev => ({ ...prev, C3: Number(e.target.value) }))}
-                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 pr-8 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400 truncate"
                           >
                             <option value={-1}>-- Lewati (Jangan Impor) --</option>
                             {csvHeaders.map(h => (
@@ -1559,7 +1559,7 @@ export default function DataDesa() {
                           <select
                             value={mappedColumns.C4}
                             onChange={(e) => setMappedColumns(prev => ({ ...prev, C4: Number(e.target.value) }))}
-                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 pr-8 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400 truncate"
                           >
                             <option value={-1}>-- Lewati (Jangan Impor) --</option>
                             {csvHeaders.map(h => (
@@ -1580,7 +1580,7 @@ export default function DataDesa() {
                           <select
                             value={mappedColumns.C5}
                             onChange={(e) => setMappedColumns(prev => ({ ...prev, C5: Number(e.target.value) }))}
-                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 pr-8 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400 truncate"
                           >
                             <option value={-1}>-- Lewati (Jangan Impor) --</option>
                             {csvHeaders.map(h => (
@@ -1601,7 +1601,7 @@ export default function DataDesa() {
                           <select
                             value={mappedColumns.bpkal}
                             onChange={(e) => setMappedColumns(prev => ({ ...prev, bpkal: Number(e.target.value) }))}
-                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            className="w-full text-xs rounded-lg border border-slate-200 bg-white px-2 pr-8 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400 truncate"
                           >
                             <option value={-1}>-- Lewati (Jangan Impor) --</option>
                             {csvHeaders.map(h => (
@@ -1637,7 +1637,7 @@ export default function DataDesa() {
 
                   {/* Unmatched Rows manual correction */}
                   {unmatchedRows.length > 0 && (
-                    <div className="bg-amber-50 border border-amber-255 p-4 rounded-xl space-y-2.5 text-xs">
+                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl space-y-2.5 text-xs">
                       <h4 className="font-bold text-amber-900 flex items-center gap-1.5">
                         <AlertTriangle size={16} className="text-amber-600 animate-pulse" />
                         <span>Kalurahan Tidak Terdeteksi Otomatis ({unmatchedRows.length})</span>
