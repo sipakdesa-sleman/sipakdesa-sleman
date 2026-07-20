@@ -2,6 +2,19 @@ import React from "react";
 import { X, CheckCircle2, AlertTriangle } from "lucide-react";
 
 export default function AlertToast({ toasts, onClose }) {
+  const cleanMessage = (msg) => {
+    if (typeof msg !== "string") return msg;
+    const emojis = ["❌", "✅", "⚠️", "⚡", "💡"];
+    let clean = msg;
+    for (const e of emojis) {
+      if (clean.startsWith(e)) {
+        clean = clean.slice(e.length).trim();
+        break;
+      }
+    }
+    return clean;
+  };
+
   return (
     <div className="fixed right-4 bottom-4 z-50 flex flex-col gap-2">
       {toasts.map((t) => (
@@ -10,7 +23,7 @@ export default function AlertToast({ toasts, onClose }) {
             {t.type === 'error' ? <AlertTriangle size={20} /> : <CheckCircle2 size={20} />}
           </div>
           <div className="flex-1">
-            <div className="text-sm">{t.message}</div>
+            <div className="text-sm whitespace-pre-line">{cleanMessage(t.message)}</div>
           </div>
           <button aria-label="close" onClick={() => onClose(t.id)} className="ml-2 text-xs opacity-90 p-1 rounded hover:bg-white/10">
             <X size={14} />
