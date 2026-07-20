@@ -1,6 +1,6 @@
 // src/pages/PerhitunganAHP.jsx
 import { useEffect, useMemo, useState } from "react";
-import { Info } from "lucide-react";
+import { Info, AlertTriangle } from "lucide-react";
 import {
   createInitialMatrix,
   updateMatrixValue,
@@ -339,8 +339,8 @@ export default function PerhitunganAHP() {
         <>
           {/* Consistency card */}
           <div className={`rounded-2xl border p-4 flex items-center gap-3 ${result.isConsistent ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}>
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${result.isConsistent ? "bg-emerald-500" : "bg-amber-500"}`}>
-              ✓
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${result.isConsistent ? "bg-emerald-500" : "bg-amber-500"}`}>
+              {result.isConsistent ? "✓" : "!"}
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-800">Consistency Ratio (CR): {result.CR.toFixed(4)}</p>
@@ -351,6 +351,28 @@ export default function PerhitunganAHP() {
               </p>
             </div>
           </div>
+
+          {!result.isConsistent && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-5 space-y-3">
+              <div className="flex items-center gap-2.5 text-red-800 font-semibold">
+                <AlertTriangle size={20} className="shrink-0 text-red-600" />
+                <span>Hasil AHP Tidak Konsisten (CR ≥ 0.1)</span>
+              </div>
+              <div className="text-xs text-red-700 space-y-2 leading-relaxed">
+                <p>
+                  <strong>Mengapa tidak bisa disimpan?</strong> Metode AHP mensyaratkan tingkat inkonsistensi perbandingan di bawah 10% (CR &lt; 0.10) agar bobot yang dihasilkan logis dan konsisten secara matematis. Nilai CR Anda saat ini adalah <strong>{result.CR.toFixed(4)}</strong>, yang berarti terdapat kontradiksi logika dalam penilaian Anda (misalnya: kriteria A lebih penting dari B, B lebih penting dari C, tetapi Anda mengisi C lebih penting dari A).
+                </p>
+                <div>
+                  <strong>Apa yang harus dilakukan untuk memperbaikinya?</strong>
+                  <ul className="list-disc list-inside mt-1.5 space-y-1.5 pl-1">
+                    <li>Periksa kembali nilai perbandingan yang memiliki perbedaan nilai ekstrem (seperti 7, 8, atau 9).</li>
+                    <li>Sederhanakan perbandingan Anda dengan mendekatkan nilai ke angka 1 (sama penting) jika kedua kriteria memiliki peran serupa.</li>
+                    <li>Pastikan hukum transitif logika terpenuhi (jika Kriteria A lebih penting dari Kriteria B, dan Kriteria B lebih penting dari Kriteria C, maka Kriteria A harus dinilai lebih penting lagi dari Kriteria C).</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Bobot prioritas */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
